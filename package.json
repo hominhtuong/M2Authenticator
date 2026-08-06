@@ -27,7 +27,8 @@
     "test": "node --test \"tests/*.test.js\"",
     "build": "node scripts/build.mjs",
     "release:github": "node scripts/release.mjs",
-    "publish:store": "node scripts/publish.mjs"
+    "publish:store": "node scripts/publish.mjs",
+    "screenshots": "node tools/screenshots/build-harness.mjs"
   },
   "engines": {
     "node": ">=20"

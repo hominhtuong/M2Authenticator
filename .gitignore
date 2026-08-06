@@ -13,3 +13,11 @@ dist/
 # JetBrains
 .idea/
 *.iml
+
+# Ảnh chụp trung gian của Playwright MCP
+.playwright-mcp/
+
+# Global gitignore của máy đang bỏ qua thư mục "tools", nhưng tools/screenshots là code
+# của dự án. Pattern trong .gitignore của repo có độ ưu tiên cao hơn core.excludesFile.
+!tools/
+!tools/**

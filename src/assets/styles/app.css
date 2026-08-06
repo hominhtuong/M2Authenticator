@@ -30,6 +30,16 @@
     box-sizing: border-box;
 }
 
+/*
+ * Thuộc tính hidden chỉ đặt display:none trong UA stylesheet, nên BẤT KỲ rule display nào của
+ * chúng ta cũng đè được nó. Ví dụ .btn có display:inline-flex và .screen--center có display:flex,
+ * khiến show(node, false) đặt hidden xong mà phần tử vẫn hiện: màn khoá chồng lên danh sách mã.
+ * Rule này khoá lại hành vi đó cho toàn bộ extension.
+ */
+[hidden] {
+    display: none !important;
+}
+
 html,
 body {
     margin: 0;

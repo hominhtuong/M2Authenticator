@@ -33,7 +33,8 @@ src/                  Extension thật (load unpacked trỏ vào đây)
   import/             Màn review khi nhập hàng loạt
   options/            Cài đặt + đổi mật khẩu + đăng ký vân tay
 scripts/build.mjs     Đóng gói zip để nộp store
-store/                Nội dung listing Chrome Web Store
+store/                Nội dung listing Chrome Web Store + ảnh chụp màn hình
+tools/screenshots/    Harness giả lập chrome.* để chụp ảnh, KHÔNG đóng gói vào extension
 tests/                node --test, không dependency
 ```
 

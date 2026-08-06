@@ -7,7 +7,7 @@
  */
 
 import { execFileSync } from 'node:child_process';
-import { mkdirSync, readFileSync, readdirSync, rmSync, statSync } from 'node:fs';
+import { cpSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync } from 'node:fs';
 import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -161,11 +161,19 @@ try {
     fail(`không chạy được lệnh zip: ${error.message}. Trên macOS/Linux lệnh này có sẵn, trên Windows hãy dùng WSL hoặc nén thủ công thư mục src/.`);
 }
 
+// Bản giải nén sẵn để Load unpacked mà không phải tự giải nén file zip.
+// Chép từ đúng nguồn vừa nén nên hai bản luôn khớp nhau.
+const unpackedPath = join(DIST, 'unpacked');
+cpSync(SRC, unpackedPath, { recursive: true, filter: (source) => !/\/\.[^/]+$/.test(source) });
+
 const sizeKb = (statSync(zipPath).size / 1024).toFixed(1);
 
 console.log(`\x1b[32mĐã đóng gói\x1b[0m ${relative(ROOT, zipPath)} (${sizeKb} KB, ${files.length} file)`);
+console.log(`\x1b[32mBản giải nén\x1b[0m ${relative(ROOT, unpackedPath)}/`);
 console.log(
     'Kiểm tra đã qua: version khớp, quyền tối thiểu, không host permission, không content script,\n' +
         `không lời gọi mạng, ${enKeys.size} khoá dịch phủ đủ ${Object.keys(CATALOGS).length} ngôn ngữ.`,
 );
-console.log('\nBước tiếp theo: tải file zip lên Chrome Web Store Developer Dashboard.');
+console.log(`
+Thử tại máy:  chrome://extensions => Developer mode => Load unpacked => chọn ${relative(ROOT, unpackedPath)}
+Nộp store:    tải ${relative(ROOT, zipPath)} lên Developer Dashboard`);

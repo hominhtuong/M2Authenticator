@@ -297,15 +297,19 @@ on first run. No account, no login and no network connection are needed.
 
 ### Screenshots
 
-1280 x 800 or 640 x 400 PNG or JPEG. At least one is required, five is better. Suggested set:
+Ready to upload, already 1280 x 800, in `store/images/`:
 
-1. Unlocked code list with the countdown rings and the search bar
-2. Lock screen with the fingerprint unlock button
-3. Import review table showing several accounts decoded from one Google Authenticator export QR
-4. Options page showing the auto-lock and clipboard settings
-5. Master password setup screen with the strength meter
+| File | Shows |
+| --- | --- |
+| `01-codes.png` | Unlocked code list with countdown rings and search |
+| `02-locked.png` | Lock screen with the fingerprint unlock button |
+| `03-import.png` | Review table with 8 accounts decoded from one Google Authenticator export QR |
+| `04-settings.png` | Settings: language, auto-lock, clipboard, fingerprint |
+| `05-setup.png` | Master password setup with the strength meter |
+| `06-languages.png` | Vietnamese interface, showing the language switcher |
 
-Do not use real secrets in the screenshots. Create a few throwaway accounts first.
+Every account shown is fabricated, no real secrets appear. See `store/images/README.md` for how to
+regenerate them after a UI change.
 
 ### Optional
 

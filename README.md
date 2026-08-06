@@ -1,5 +1,7 @@
 # M2 Authenticator
 
+![Logo M2 Authenticator](brand/logo.png)
+
 Extension Chrome sinh mã xác thực hai lớp (TOTP/HOTP) chạy **hoàn toàn offline**. Mục tiêu: thay được app
 authenticator trên điện thoại mà không phải hạ tiêu chuẩn bảo mật.
 
@@ -31,6 +33,8 @@ Bấm **Add to Chrome** là xong, extension tự cập nhật khi có bản mớ
 2. Giải nén
 3. Mở `chrome://extensions`, bật **Developer mode**
 4. Bấm **Load unpacked**, trỏ vào thư mục vừa giải nén
+
+Nếu tự build từ mã nguồn, `npm run build` tạo sẵn `dist/unpacked/` để Load unpacked thẳng, khỏi giải nén.
 
 ### Cách 3: fork và tự build
 
@@ -265,6 +269,9 @@ scripts/
   release.mjs           tag + tạo GitHub release
   publish.mjs           đẩy bản mới lên Chrome Web Store qua API
 store/                  nội dung listing Chrome Web Store (tiếng Việt và tiếng Anh)
+  images/               ảnh chụp màn hình 1280x800 để nộp store
+tools/screenshots/      harness giả lập chrome.* để chụp lại ảnh khi UI đổi
+brand/                  logo gốc và huy hiệu ổ khoá dạng vector (không đóng gói vào extension)
 tests/                  node --test, không dependency
 
 CONTRIBUTING.md         ràng buộc và quy trình đóng góp
@@ -279,7 +286,8 @@ RELEASING.md            quy trình phát hành (dành cho maintainer)
 
 ```bash
 npm test                  # 49 test, gồm vector chính thức RFC 6238 / RFC 4226 / RFC 4648
-npm run build             # kiểm tra rồi đóng gói dist/m2-authenticator-<version>.zip
+npm run build             # kiểm tra rồi đóng gói dist/m2-authenticator-<version>.zip + dist/unpacked/
+npm run screenshots       # dựng harness để chụp lại ảnh cho store
 npm run release:github    # tag + tạo GitHub release, đính kèm zip
 npm run publish:store     # đẩy lên Chrome Web Store qua API
 ```

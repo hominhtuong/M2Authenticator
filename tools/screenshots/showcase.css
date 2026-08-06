@@ -1,0 +1,119 @@
+/* Khung 1280x800 cho ảnh chụp màn hình nộp Chrome Web Store. */
+
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    width: 1280px;
+    height: 800px;
+    margin: 0;
+    overflow: hidden;
+}
+
+body {
+    background:
+        radial-gradient(900px 620px at 12% -10%, rgba(77, 124, 254, 0.24), transparent 60%),
+        radial-gradient(760px 560px at 100% 110%, rgba(255, 84, 112, 0.18), transparent 62%),
+        #0d0f14;
+    color: #eef1f6;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+    -webkit-font-smoothing: antialiased;
+}
+
+.stage {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 72px;
+    height: 100%;
+    padding: 0 88px;
+}
+
+.copy__logo {
+    display: block;
+    margin-bottom: 26px;
+    border-radius: 18px;
+}
+
+.copy h1 {
+    margin: 0 0 16px;
+    font-size: 46px;
+    line-height: 1.1;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+}
+
+.copy p {
+    margin: 0;
+    max-width: 30ch;
+    color: #98a2b3;
+    font-size: 19px;
+    line-height: 1.5;
+}
+
+.copy__bullets {
+    margin: 30px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.copy__bullets li {
+    position: relative;
+    margin-bottom: 13px;
+    padding-left: 28px;
+    color: #c7cedb;
+    font-size: 16.5px;
+    line-height: 1.45;
+}
+
+.copy__bullets li::before {
+    content: '';
+    position: absolute;
+    left: 2px;
+    top: 7px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #4d7cfe, #ff5470);
+}
+
+/* Khung giả cửa sổ popup của Chrome */
+.device {
+    position: relative;
+    padding: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 22px;
+    background: rgba(255, 255, 255, 0.035);
+    box-shadow: 0 40px 90px rgba(0, 0, 0, 0.55);
+}
+
+.device iframe {
+    display: block;
+    border: none;
+    border-radius: 13px;
+    background: #0d0f14;
+}
+
+/* Trang đầy đủ (options, import) thì bỏ cột chữ, chỉ chụp thẳng trang */
+body[data-layout='full'] .stage {
+    grid-template-columns: 1fr;
+    padding: 0;
+}
+
+body[data-layout='full'] .copy {
+    display: none;
+}
+
+body[data-layout='full'] .device {
+    padding: 0;
+    border: none;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+}
+
+body[data-layout='full'] .device iframe {
+    border-radius: 0;
+}
