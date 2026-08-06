@@ -129,24 +129,31 @@ test('name không có dấu hai chấm thì lấy nguyên làm tên tài khoản
 });
 
 test('từ chối payload hỏng hoặc không phải migration', () => {
-    assert.throws(() => parseMigrationUri('otpauth://totp/X?secret=AA'), /không phải QR chuyển tài khoản/);
-    assert.throws(() => parseMigrationUri('otpauth-migration://offline'), /thiếu tham số data/);
-    assert.throws(
-        () => parseMigrationUri('otpauth-migration://offline?data=%25%25%25'),
-        /không giải mã được|hỏng/,
-    );
+    assert.throws(() => parseMigrationUri('otpauth://totp/X?secret=AA'), {
+        code: 'error.migrationNotMigrationUri',
+    });
+    assert.throws(() => parseMigrationUri('otpauth-migration://offline'), {
+        code: 'error.migrationNoData',
+    });
+    assert.throws(() => parseMigrationUri('otpauth-migration://offline?data=%25%25%25'), {
+        code: 'error.migrationBadBase64',
+    });
 });
 
 test('từ chối thuật toán MD5', () => {
     const uri = migrationUri([
         { secret: new Uint8Array([1, 2, 3]), name: 'X:y', issuer: 'X', algorithm: 4 },
     ]);
-    assert.throws(() => parseMigrationUri(uri), /MD5/);
+    assert.throws(() => parseMigrationUri(uri), { code: 'error.migrationAlgorithmUnsupported' });
 });
 
 test('protobuf: varint bị cắt cụt thì báo lỗi thay vì trả rác', () => {
-    assert.throws(() => decodeMessage(Uint8Array.from([0x08, 0x80])), /cắt cụt/);
-    assert.throws(() => decodeMessage(Uint8Array.from([0x0a, 0x05, 0x01])), /vượt quá dữ liệu/);
+    assert.throws(() => decodeMessage(Uint8Array.from([0x08, 0x80])), {
+        code: 'error.protobufTruncatedVarint',
+    });
+    assert.throws(() => decodeMessage(Uint8Array.from([0x0a, 0x05, 0x01])), {
+        code: 'error.protobufOverrun',
+    });
 });
 
 test('protobuf: bỏ qua field không biết mà không vỡ', () => {

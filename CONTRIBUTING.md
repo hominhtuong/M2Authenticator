@@ -52,6 +52,19 @@ thương lượng được kể cả khi pull request rất hay.
 Không log secret, khoá, master password, hay payload đã giải mã. Kể cả `console.debug` khi đang dev, kể cả khi
 bạn định xoá trước khi commit.
 
+### Chuỗi hiển thị
+
+Không viết chữ hiển thị thẳng vào code hay HTML. Mọi câu người dùng đọc phải là một khoá trong
+`src/lib/locales/en.js` và `vi.js`:
+
+- Trong HTML: `data-i18n="khoá"`, hoặc `data-i18n-placeholder`, `data-i18n-title`, `data-i18n-label`
+- Trong JS: `t('khoá', { thamSo })`
+- Trong `src/lib/`: **không** dịch ở đó. Ném `fail('error.maLoi', { thamSo })`, tầng UI mới tra bảng dịch.
+  Nhờ vậy lib không cần biết người dùng đang xem ngôn ngữ nào.
+
+Thêm khoá thì phải thêm ở **cả hai** bảng dịch, và chỗ chèn `{tên}` phải giống nhau giữa hai ngôn ngữ.
+`npm test` và `npm run build` đều chặn nếu lệch.
+
 ### Test
 
 Module trong `src/lib/` được thiết kế để test được bằng `node --test`, không cần trình duyệt. Nếu bạn sửa
@@ -65,8 +78,9 @@ Tính năng mật mã mới nên có test cho cả đường thất bại: khoá
 - Vanilla JavaScript, ES modules, không TypeScript, không build step
 - Thụt lề 4 space
 - Comment giải thích **tại sao**, không phải **cái gì**. Code đã nói cái gì rồi.
-- Comment và chuỗi hiển thị viết tiếng Việt có dấu đầy đủ, khớp với phần còn lại của dự án
-- Đặt tên tiếng Anh cho biến và hàm
+- Comment viết tiếng Việt có dấu đầy đủ, khớp với phần còn lại của dự án
+- Đặt tên tiếng Anh cho biến, hàm và khoá dịch
+- Chuỗi hiển thị không viết thẳng vào code, xem mục "Chuỗi hiển thị" bên trên
 
 ## Quy trình gửi pull request
 
@@ -85,7 +99,9 @@ Nếu bạn muốn đóng góp mà chưa biết bắt đầu từ đâu:
 
 - **Export/import backup mã hoá.** Ưu tiên số một. Hiện quên master password là mất sạch, không có đường cứu.
   Cần thiết kế format có version, mã hoá bằng mật khẩu riêng, và màn xác nhận đủ rõ để user không tự bắn chân.
-- **i18n.** Giao diện đang tiếng Việt. Cần `_locales/` với tiếng Anh và tiếng Việt, khoảng 120 chuỗi trên 4 trang.
+- **Thêm ngôn ngữ mới.** Hiện có tiếng Anh và tiếng Việt. Thêm một ngôn ngữ: tạo `src/lib/locales/<mã>.js`
+  chép từ `en.js` rồi dịch, đăng ký vào `CATALOGS` và `LANGUAGES` trong `src/lib/i18n.js`, thêm hàm vẽ cờ
+  trong `flagFor()`, và tạo `src/_locales/<mã>/messages.json`. Test và build sẽ báo ngay nếu thiếu khoá nào.
 - **Test cho tầng UI.** Hiện chỉ có test cho `src/lib/`. Phần popup, import, options chưa có gì.
 - **Kiểm chứng WebAuthn PRF trên nhiều nền tảng.** Đặc biệt Windows Hello và các khoá bảo mật rời.
 

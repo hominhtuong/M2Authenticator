@@ -7,10 +7,13 @@ Zero dependency, không bundler, không một lời gọi mạng nào. Toàn b�
 và WebAuthn - đều là API có sẵn của Chrome. Mã nguồn đủ nhỏ để đọc hết trong một buổi, và đó là chủ ý:
 một ứng dụng giữ seed 2FA thì phải kiểm chứng được.
 
+Giao diện có **tiếng Anh và tiếng Việt**, đổi bằng nút cờ ngay trong extension, không cần tải lại.
+
 ![License](https://img.shields.io/badge/license-MIT-blue)
 ![Manifest](https://img.shields.io/badge/manifest-v3-brightgreen)
 ![Chrome](https://img.shields.io/badge/chrome-116%2B-orange)
 ![Dependencies](https://img.shields.io/badge/dependencies-0-success)
+![i18n](https://img.shields.io/badge/i18n-EN%20%7C%20VI-blueviolet)
 
 ---
 
@@ -34,7 +37,7 @@ Bấm **Add to Chrome** là xong, extension tự cập nhật khi có bản mớ
 ```bash
 git clone https://github.com/hominhtuong/M2Authenticator.git
 cd M2Authenticator
-npm test        # 43 test, không cần cài dependency nào
+npm test        # 49 test, không cần cài dependency nào
 npm run build   # tạo dist/m2-authenticator-<version>.zip
 ```
 
@@ -99,6 +102,13 @@ hoặc khoá bảo mật hỗ trợ WebAuthn PRF.
 
 Sau khi bật, màn khoá có thêm nút mở bằng sinh trắc. Master password vẫn dùng được như phương án dự phòng, và
 gỡ vân tay không ảnh hưởng gì tới đường mật khẩu.
+
+### Đổi ngôn ngữ
+
+Nút cờ có ở màn khoá, cuối popup, đầu trang nhập account và trong Cài đặt. Bấm là đổi ngay, không cần tải lại
+trang. Lựa chọn được ghi nhớ cho mọi trang của extension.
+
+Mặc định là tiếng Anh. Hiện hỗ trợ tiếng Anh và tiếng Việt.
 
 ### Các mốc nên chỉnh trong Cài đặt
 
@@ -240,6 +250,10 @@ src/                    extension (thư mục để load unpacked / đem đi né
     clipboard.js        copy kèm hẹn giờ xoá
     dom.js              helper dựng DOM (không có API nào nhận HTML string)
     messages.js         hằng số message
+    errors.js           AppError mang mã lỗi thay vì câu chữ
+    i18n.js             đa ngôn ngữ lúc chạy + nút cờ đổi ngôn ngữ
+    locales/            bảng dịch en.js và vi.js
+  _locales/             tên và mô tả cho Chrome Web Store (en, vi)
   background/           service worker: auto-lock, dọn clipboard
   offscreen/            tài liệu offscreen chỉ để ghi đè clipboard
   popup/                danh sách mã, tìm kiếm, sắp xếp
@@ -264,7 +278,7 @@ RELEASING.md            quy trình phát hành (dành cho maintainer)
 ## Phát triển
 
 ```bash
-npm test                  # 43 test, gồm vector chính thức RFC 6238 / RFC 4226 / RFC 4648
+npm test                  # 49 test, gồm vector chính thức RFC 6238 / RFC 4226 / RFC 4648
 npm run build             # kiểm tra rồi đóng gói dist/m2-authenticator-<version>.zip
 npm run release:github    # tag + tạo GitHub release, đính kèm zip
 npm run publish:store     # đẩy lên Chrome Web Store qua API
@@ -276,6 +290,7 @@ npm run publish:store     # đẩy lên Chrome Web Store qua API
 - manifest xin quyền ngoài danh sách trắng
 - xuất hiện host permission hoặc content script
 - có file `.js` nào trong `src/` chứa lời gọi mạng
+- hai bảng dịch lệch khoá nhau, hoặc HTML/JS dùng khoá dịch không tồn tại
 
 Hai script phát hành cần cấu hình: copy `.env.example` thành `.env` rồi điền theo hướng dẫn trong
 [RELEASING.md](RELEASING.md). File `.env` đã nằm trong `.gitignore`, **đừng bao giờ commit nó**.
@@ -295,14 +310,15 @@ với chi tiết khai thác được.
 ## Trạng thái
 
 Đây là bản phát hành đầu tiên. Phần thuật toán (TOTP/HOTP, Base32, protobuf, AES-GCM, PBKDF2, HKDF) đã có
-43 test tự động phủ, gồm vector chính thức của RFC 6238, RFC 4226 và RFC 4648.
+49 test tự động phủ, gồm vector chính thức của RFC 6238, RFC 4226 và RFC 4648, cùng các test giữ cho hai
+bảng dịch không lệch nhau.
 
 Còn thiếu, và biết là thiếu:
 
 - **Chưa có export/import backup mã hoá.** Quên master password là mất toàn bộ account, không có đường cứu.
   Đây cũng là lý do chưa bật tính năng xoá vault sau N lần nhập sai. Ưu tiên số một cho bản kế tiếp.
-- **Chưa i18n**, giao diện đang tiếng Việt.
 - **Chưa có kiểm định bảo mật độc lập.** Mã nguồn mở để bù cho việc đó, nhưng mở nguồn không thay thế được audit.
+- **Mới có tiếng Anh và tiếng Việt.** Thêm ngôn ngữ chỉ cần một file trong `src/lib/locales/`, xem CONTRIBUTING.
 
 ---
 

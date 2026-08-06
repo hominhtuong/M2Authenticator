@@ -4,6 +4,7 @@
 
 import { normalizeBase32, isValidBase32 } from './base32.js';
 import { normalizeAlgorithm, DEFAULT_DIGITS, DEFAULT_PERIOD, DEFAULT_ALGORITHM } from './totp.js';
+import { fail } from './errors.js';
 
 export function isOtpAuthUri(raw) {
     return String(raw ?? '')
@@ -14,23 +15,23 @@ export function isOtpAuthUri(raw) {
 
 export function parseOtpAuthUri(raw) {
     const text = String(raw ?? '').trim();
-    if (!isOtpAuthUri(text)) throw new Error('Đây không phải QR 2FA (otpauth://).');
+    if (!isOtpAuthUri(text)) fail('error.otpNotOtpauth');
 
     let url;
     try {
         url = new URL(text);
     } catch {
-        throw new Error('Link otpauth trong QR không hợp lệ.');
+        fail('error.otpBadUri');
     }
 
     const type = (url.hostname || '').toLowerCase();
     if (type !== 'totp' && type !== 'hotp') {
-        throw new Error(`Loại OTP không hỗ trợ: ${type || 'không xác định'}.`);
+        fail('error.otpTypeUnsupported', { type: type || '?' });
     }
 
     const secret = normalizeBase32(url.searchParams.get('secret') || '');
-    if (!secret) throw new Error('QR không chứa secret.');
-    if (!isValidBase32(secret)) throw new Error('Secret trong QR không phải Base32 hợp lệ.');
+    if (!secret) fail('error.otpNoSecret');
+    if (!isValidBase32(secret)) fail('error.otpSecretNotBase32');
 
     const pathLabel = decodeURIComponent(url.pathname || '').replace(/^\/+/, '');
     let issuer = (url.searchParams.get('issuer') || '').trim();
@@ -51,10 +52,10 @@ export function parseOtpAuthUri(raw) {
     const period = periodRaw ? parseInt(periodRaw, 10) : DEFAULT_PERIOD;
 
     if (!Number.isFinite(digits) || digits < 6 || digits > 10) {
-        throw new Error('Số chữ số trong QR không hợp lệ.');
+        fail('error.otpDigitsInvalid');
     }
     if (!Number.isFinite(period) || period <= 0 || period > 300) {
-        throw new Error('Chu kỳ trong QR không hợp lệ.');
+        fail('error.otpPeriodInvalid');
     }
 
     let algorithm = DEFAULT_ALGORITHM;
@@ -73,12 +74,15 @@ export function parseOtpAuthUri(raw) {
     };
 }
 
-/** Nhãn hiển thị: "Issuer (account)" hoặc phần nào có. */
-export function displayLabel(account) {
+/**
+ * Nhãn hiển thị: "Issuer (account)" hoặc phần nào có.
+ * Chuỗi thay thế do chỗ gọi truyền vào, vì tầng lib không biết ngôn ngữ đang dùng.
+ */
+export function displayLabel(account, fallback = '?') {
     const issuer = String(account.issuer ?? '').trim();
     const name = String(account.account ?? '').trim();
     if (issuer && name) return `${issuer} (${name})`;
-    return issuer || name || 'Không tên';
+    return issuer || name || fallback;
 }
 
 /** Khoá so trùng để phát hiện account đã tồn tại. */

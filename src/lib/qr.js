@@ -3,6 +3,8 @@
  * Không dùng thư viện QR ngoài: ảnh QR chứa seed 2FA, không đưa qua code lạ.
  */
 
+import { fail } from './errors.js';
+
 export function isBarcodeDetectorAvailable() {
     return typeof globalThis.BarcodeDetector !== 'undefined';
 }
@@ -19,14 +21,14 @@ async function detectFromBitmap(bitmap) {
  */
 export async function readQrFromBlob(blob) {
     if (!isBarcodeDetectorAvailable()) {
-        throw new Error('Chrome của bạn chưa hỗ trợ đọc QR (BarcodeDetector). Hãy cập nhật Chrome.');
+        fail('error.qrNoDetector');
     }
 
     let bitmap;
     try {
         bitmap = await createImageBitmap(blob);
     } catch {
-        throw new Error('Không mở được ảnh. Định dạng có thể không hợp lệ.');
+        fail('error.qrCannotOpenImage');
     }
 
     try {
@@ -59,12 +61,12 @@ export async function readQrFromFiles(files) {
         try {
             const found = await readQrFromBlob(file);
             if (found.length === 0) {
-                errors.push({ name: file.name, reason: 'Không tìm thấy mã QR trong ảnh.' });
+                errors.push({ name: file.name, code: 'error.qrNotFound', params: {} });
             } else {
                 values.push(...found);
             }
         } catch (error) {
-            errors.push({ name: file.name, reason: error.message });
+            errors.push({ name: file.name, code: error.code ?? 'error.unknown', params: error.params ?? {} });
         }
     }
 

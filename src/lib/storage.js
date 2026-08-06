@@ -9,8 +9,6 @@ export const LOCAL_KEYS = {
     VAULT: 'vault_v2',
     SECURITY: 'security_v1',
     SETTINGS: 'settings_v1',
-    LEGACY_ACCOUNTS: 'totp_accounts_v1',
-    LEGACY_MANUAL_TOGGLE: 'totp_manual_input_enabled_v1',
 };
 
 export const SESSION_KEYS = {

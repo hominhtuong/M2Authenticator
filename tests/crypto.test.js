@@ -168,6 +168,7 @@ test('passphrase dài được chấp nhận mà không cần chữ hoa hay ký 
     const passphrase = assessPassword('con mèo trèo cây cau 2026');
     assert.equal(passphrase.ok, true);
     assert.ok(passphrase.score >= 4, `score = ${passphrase.score}`);
+    assert.equal(passphrase.labelKey, `password.strength.${passphrase.score}`);
 
     const noDigits = assessPassword('bốn con ngựa chạy qua cánh đồng');
     assert.equal(noDigits.ok, true);

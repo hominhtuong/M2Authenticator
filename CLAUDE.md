@@ -25,6 +25,8 @@ Mục tiêu chất lượng: user dám bỏ app mobile để dùng cái này, n�
 src/                  Extension thật (load unpacked trỏ vào đây)
   manifest.json
   lib/                Module thuần, không đụng DOM, test được bằng node --test
+  lib/locales/        Bảng dịch en.js và vi.js
+  _locales/           Tên + mô tả cho Chrome Web Store
   background/         Service worker: auto-lock, dọn clipboard
   popup/              UI chính (mở khoá + danh sách mã)
   unlock/             Trang mở khoá dạng cửa sổ riêng - bắt buộc cho WebAuthn
@@ -58,6 +60,8 @@ Khi mở khoá, DEK dạng raw nằm trong `chrome.storage.session` (bộ nhớ,
   đó vẫn đứng yên. Đổi nó là mọi vault đã tồn tại không giải mã được nữa.
 - Không log secret, DEK, password, hay payload đã giải mã. Kể cả `console.debug` khi đang dev.
 - Sửa `lib/totp.js`, `lib/base32.js`, `lib/protobuf.js`, `lib/migration.js` thì chạy `npm test` trước khi báo xong.
+- Không viết chữ hiển thị thẳng vào code. HTML dùng `data-i18n`, JS dùng `t()`, `lib/` ném `fail('error.x')`
+  chứ không tự dịch. Thêm khoá phải thêm ở cả `locales/en.js` lẫn `locales/vi.js`.
 
 ## Lệnh
 
@@ -78,4 +82,4 @@ Load thủ công: `chrome://extensions` => Developer mode => Load unpacked => ch
 
 - Chưa có export/import backup mã hoá. Hệ quả: quên master password là mất toàn bộ account, không có đường cứu.
   Đây là lý do chưa bật tính năng xoá vault sau N lần nhập sai.
-- Chưa i18n, UI đang tiếng Việt.
+- Mới có tiếng Anh và tiếng Việt.

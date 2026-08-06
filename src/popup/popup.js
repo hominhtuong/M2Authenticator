@@ -3,6 +3,7 @@ import { copyCode } from '../lib/clipboard.js';
 import { MSG } from '../lib/messages.js';
 import { displayLabel } from '../lib/otpauth.js';
 import { generateForAccount, secondsRemaining } from '../lib/totp.js';
+import { buildLanguageSwitcher, describeError, initI18n, onLanguageChange, t } from '../lib/i18n.js';
 import * as vault from '../lib/vault.js';
 
 const RING_RADIUS = 12;
@@ -23,14 +24,13 @@ const ui = {
     search: $('#search'),
     list: $('#list'),
     emptyState: $('#emptyState'),
-    legacyBanner: $('#legacyBanner'),
 };
 
 let settings = { ...vault.DEFAULT_SETTINGS };
 let accounts = [];
 let sorting = false;
 let tickTimer = null;
-/** id account => { codeEl, ringEl, labelEl, account } */
+/** id account => { account, codeEl, ringValue, ringLabel } */
 const rendered = new Map();
 
 // ------------------------------------------------------------ điều hướng
@@ -53,7 +53,7 @@ function openUnlockWindow(query = '') {
         url: chrome.runtime.getURL(`unlock/unlock.html${query}`),
         type: 'popup',
         width: 420,
-        height: 460,
+        height: 520,
     });
     window.close();
 }
@@ -63,8 +63,9 @@ function openUnlockWindow(query = '') {
 async function refreshLockedScreen() {
     const status = await vault.getLockoutStatus();
     if (status.lockedOut) {
-        const seconds = Math.ceil(status.remainingMs / 1000);
-        ui.lockedAlert.textContent = `Nhập sai quá nhiều lần. Thử lại sau ${seconds} giây.`;
+        ui.lockedAlert.textContent = t('error.tooManyAttempts', {
+            seconds: Math.ceil(status.remainingMs / 1000),
+        });
         show(ui.lockedAlert, true);
         ui.unlockBtn.disabled = true;
         setTimeout(refreshLockedScreen, 1000);
@@ -82,19 +83,19 @@ ui.unlockForm.addEventListener('submit', async (event) => {
     if (!password) return;
 
     ui.unlockBtn.disabled = true;
-    ui.unlockBtn.textContent = 'Đang mở khoá...';
+    ui.unlockBtn.textContent = t('popup.locked.unlocking');
 
     try {
         await vault.unlockWithPassword(password);
         ui.masterPassword.value = '';
         await enterVault();
     } catch (error) {
-        ui.lockedAlert.textContent = error.message;
+        ui.lockedAlert.textContent = describeError(error);
         show(ui.lockedAlert, true);
         ui.masterPassword.select();
         await refreshLockedScreen();
     } finally {
-        ui.unlockBtn.textContent = 'Mở khoá';
+        ui.unlockBtn.textContent = t('popup.locked.unlock');
     }
 });
 
@@ -124,7 +125,7 @@ $('#sortBtn').addEventListener('click', () => {
     if (sorting) ui.search.value = '';
 
     renderList();
-    toast(sorting ? 'Chế độ sắp xếp: bật' : 'Đã lưu thứ tự', sorting ? 'info' : 'success');
+    toast(t(sorting ? 'popup.sort.on' : 'popup.sort.off'), sorting ? 'info' : 'success');
 });
 
 ui.search.addEventListener('input', renderList);
@@ -190,8 +191,7 @@ function buildRing() {
 
 function matchesSearch(account, query) {
     if (!query) return true;
-    const haystack = `${account.issuer} ${account.account}`.toLowerCase();
-    return haystack.includes(query);
+    return `${account.issuer} ${account.account}`.toLowerCase().includes(query);
 }
 
 async function moveAccount(id, delta) {
@@ -206,19 +206,19 @@ async function moveAccount(id, delta) {
     renderList();
 }
 
-async function handleCopy(account, codeEl) {
+async function handleCopy(codeEl) {
     const code = codeEl.dataset.code;
     if (!code) return;
 
     const ok = await copyCode(code, settings.clipboardClearSeconds);
     if (!ok) {
-        toast('Không copy được vào clipboard.', 'error');
+        toast(t('popup.copy.failed'), 'error');
         return;
     }
 
     const seconds = Number(settings.clipboardClearSeconds);
     toast(
-        seconds > 0 ? `Đã copy. Clipboard tự xoá sau ${seconds}s.` : 'Đã copy mã.',
+        seconds > 0 ? t('popup.copy.doneWithClear', { seconds }) : t('popup.copy.done'),
         'success',
     );
     await vault.touchActivity();
@@ -226,9 +226,10 @@ async function handleCopy(account, codeEl) {
 
 async function handleDelete(account) {
     const confirmed = await confirmDialog({
-        title: 'Xoá account?',
-        message: `"${displayLabel(account)}" sẽ bị xoá vĩnh viễn. Nếu chưa tắt 2FA ở dịch vụ đó, bạn sẽ mất quyền đăng nhập.`,
-        confirmLabel: 'Xoá',
+        title: t('popup.delete.title'),
+        message: t('popup.delete.message', { label: displayLabel(account, t('common.unknownAccount')) }),
+        confirmLabel: t('common.delete'),
+        cancelLabel: t('common.cancel'),
         danger: true,
     });
     if (!confirmed) return;
@@ -236,7 +237,7 @@ async function handleDelete(account) {
     await vault.deleteAccount(account.id);
     accounts = await vault.listAccounts();
     renderList();
-    toast('Đã xoá account.', 'success');
+    toast(t('popup.delete.done'), 'success');
 }
 
 function buildEntry(account, index, total) {
@@ -245,38 +246,48 @@ function buildEntry(account, index, total) {
     const codeEl = el('button', {
         class: 'entry__code',
         type: 'button',
-        title: 'Bấm để copy',
+        title: t('popup.entry.copyHint'),
         text: '••••••',
     });
     codeEl.dataset.hidden = String(Boolean(settings.hideCodes));
-    codeEl.addEventListener('click', () => handleCopy(account, codeEl));
+    codeEl.addEventListener('click', () => handleCopy(codeEl));
 
     const main = el('div', { class: 'entry__main' }, [
-        el('div', { class: 'entry__issuer', text: account.issuer || account.account || 'Không tên' }),
+        el('div', {
+            class: 'entry__issuer',
+            text: account.issuer || account.account || t('common.unknownAccount'),
+        }),
         account.issuer && account.account
             ? el('div', { class: 'entry__account', text: account.account })
             : null,
         codeEl,
         account.type === 'hotp'
-            ? el('div', { class: 'hotp-counter', text: `HOTP · counter ${account.counter ?? 0}` })
+            ? el('div', {
+                  class: 'hotp-counter',
+                  text: t('popup.entry.hotpCounter', { counter: account.counter ?? 0 }),
+              })
             : null,
     ]);
 
     const actions = el('div', { class: 'entry__actions' });
 
     if (sorting) {
-        const up = el('button', { class: 'btn btn--icon', type: 'button', title: 'Lên' }, [icon(ICONS.up)]);
+        const up = el('button', { class: 'btn btn--icon', type: 'button', title: t('popup.entry.moveUp') }, [
+            icon(ICONS.up),
+        ]);
         up.disabled = index === 0;
         up.addEventListener('click', () => moveAccount(account.id, -1));
 
-        const down = el('button', { class: 'btn btn--icon', type: 'button', title: 'Xuống' }, [icon(ICONS.down)]);
+        const down = el('button', { class: 'btn btn--icon', type: 'button', title: t('popup.entry.moveDown') }, [
+            icon(ICONS.down),
+        ]);
         down.disabled = index === total - 1;
         down.addEventListener('click', () => moveAccount(account.id, 1));
 
         actions.append(up, down);
     } else {
         if (account.type === 'hotp') {
-            const next = el('button', { class: 'btn btn--icon', type: 'button', title: 'Sinh mã tiếp theo' }, [
+            const next = el('button', { class: 'btn btn--icon', type: 'button', title: t('popup.entry.nextCode') }, [
                 icon(ICONS.refresh),
             ]);
             next.addEventListener('click', async () => {
@@ -287,10 +298,14 @@ function buildEntry(account, index, total) {
             actions.append(next);
         }
 
-        const copy = el('button', { class: 'btn btn--icon', type: 'button', title: 'Copy mã' }, [icon(ICONS.copy)]);
-        copy.addEventListener('click', () => handleCopy(account, codeEl));
+        const copy = el('button', { class: 'btn btn--icon', type: 'button', title: t('popup.entry.copy') }, [
+            icon(ICONS.copy),
+        ]);
+        copy.addEventListener('click', () => handleCopy(codeEl));
 
-        const remove = el('button', { class: 'btn btn--icon', type: 'button', title: 'Xoá' }, [icon(ICONS.trash)]);
+        const remove = el('button', { class: 'btn btn--icon', type: 'button', title: t('popup.entry.delete') }, [
+            icon(ICONS.trash),
+        ]);
         remove.addEventListener('click', () => handleDelete(account));
 
         actions.append(copy, remove);
@@ -316,7 +331,7 @@ function renderList() {
     show(ui.emptyState, accounts.length === 0);
 
     if (accounts.length > 0 && visible.length === 0) {
-        ui.list.append(el('p', { class: 'empty__text', text: 'Không có account nào khớp.' }));
+        ui.list.append(el('p', { class: 'empty__text', text: t('popup.noMatch') }));
         return;
     }
 
@@ -335,12 +350,11 @@ async function tick() {
     for (const { account, codeEl, ringValue, ringLabel } of rendered.values()) {
         try {
             const code = await generateForAccount(account, now);
-            const grouped = code.length === 6 ? `${code.slice(0, 3)} ${code.slice(3)}` : code;
-            codeEl.textContent = grouped;
+            codeEl.textContent = code.length === 6 ? `${code.slice(0, 3)} ${code.slice(3)}` : code;
             codeEl.dataset.code = code;
             delete codeEl.dataset.error;
         } catch {
-            codeEl.textContent = 'Secret lỗi';
+            codeEl.textContent = t('popup.entry.brokenSecret');
             codeEl.dataset.error = 'true';
             delete codeEl.dataset.code;
         }
@@ -368,47 +382,30 @@ function startTicking() {
 
 // -------------------------------------------------------------- khởi động
 
-async function showLegacyBannerIfNeeded() {
-    const count = await vault.countLegacyAccounts();
-    if (count === 0) {
-        show(ui.legacyBanner, false);
-        return;
-    }
-
-    clear(ui.legacyBanner);
-    ui.legacyBanner.append(
-        el('div', {
-            text: `Còn ${count} account của bản cũ đang lưu KHÔNG mã hoá trên máy.`,
-        }),
-        el('button', {
-            class: 'btn btn--sm',
-            type: 'button',
-            text: 'Chuyển vào vault mã hoá',
-            style: 'margin-top:8px',
-            onClick: async () => {
-                const result = await vault.migrateLegacyPlaintextData();
-                accounts = await vault.listAccounts();
-                renderList();
-                await showLegacyBannerIfNeeded();
-                toast(`Đã chuyển ${result.added} account và xoá bản plaintext.`, 'success');
-            },
-        }),
-    );
-    show(ui.legacyBanner, true);
-}
-
 async function enterVault() {
     settings = await vault.getSettings();
     accounts = await vault.listAccounts();
     showScreen('vault');
     renderList();
     startTicking();
-    await showLegacyBannerIfNeeded();
     await vault.touchActivity();
     ui.search.focus();
 }
 
 async function boot() {
+    await initI18n();
+
+    $('#setupLang').append(buildLanguageSwitcher({ compact: true }));
+    $('#lockedLang').append(buildLanguageSwitcher({ compact: true }));
+    $('#vaultLang').append(buildLanguageSwitcher({ compact: true }));
+
+    // Đổi ngôn ngữ phải vẽ lại danh sách vì nhãn nút và tên mặc định dựng bằng JS.
+    onLanguageChange(async () => {
+        settings = await vault.getSettings();
+        if (!ui.screens.vault.hidden) renderList();
+        if (!ui.screens.locked.hidden) await refreshLockedScreen();
+    });
+
     const state = await vault.getState();
 
     if (state === vault.VaultState.UNINITIALIZED) {

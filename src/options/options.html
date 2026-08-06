@@ -1,91 +1,88 @@
 <!doctype html>
-<html lang="vi">
+<html lang="en">
 <head>
     <meta charset="utf-8" />
-    <title>M2 Authenticator - Cài đặt</title>
+    <title>M2 Authenticator</title>
     <link rel="stylesheet" href="../assets/styles/app.css" />
     <link rel="stylesheet" href="options.css" />
 </head>
 <body class="page">
 <main class="wrap">
     <header class="page-header">
-        <h1>Cài đặt</h1>
-        <p class="page-header__lead">Mọi dữ liệu nằm trên máy bạn. Extension không gửi bất cứ thứ gì ra ngoài.</p>
+        <h1 data-i18n="options.title"></h1>
+        <p class="page-header__lead" data-i18n="options.lead"></p>
     </header>
 
-    <div id="welcomeNotice" class="alert alert--success" hidden>
-        Vault đã được tạo. Nên bật thêm mở khoá bằng vân tay ở mục bên dưới để đỡ phải gõ mật khẩu mỗi lần.
-    </div>
+    <div id="welcomeNotice" class="alert alert--success" data-i18n="options.welcome" hidden></div>
+    <div id="lockedNotice" class="alert alert--warning" data-i18n="options.locked" hidden></div>
 
-    <div id="lockedNotice" class="alert alert--warning" hidden>
-        Vault đang khoá. Mở khoá từ biểu tượng extension rồi tải lại trang này để đổi cài đặt bảo mật.
-    </div>
+    <!-- Ngôn ngữ -->
+    <section class="card">
+        <h2 data-i18n="options.language.title"></h2>
+        <p class="card__lead" data-i18n="options.language.lead"></p>
+        <div id="langSlot"></div>
+    </section>
 
     <!-- Khoá và phiên -->
     <section class="card">
-        <h2>Khoá tự động</h2>
-        <p class="card__lead">Vault luôn tự khoá khi bạn đóng Chrome. Mốc dưới đây là thời gian rảnh trước khi khoá sớm hơn.</p>
+        <h2 data-i18n="options.lock.title"></h2>
+        <p class="card__lead" data-i18n="options.lock.lead"></p>
 
         <label class="field">
-            <span class="field__label">Tự khoá sau</span>
+            <span class="field__label" data-i18n="options.lock.after"></span>
             <select id="autoLock" class="input">
-                <option value="1">1 phút</option>
-                <option value="5">5 phút</option>
-                <option value="15">15 phút</option>
-                <option value="30">30 phút</option>
-                <option value="60">1 giờ</option>
-                <option value="0">Chỉ khi đóng Chrome</option>
+                <option value="1" data-i18n="options.lock.1"></option>
+                <option value="5" data-i18n="options.lock.5"></option>
+                <option value="15" data-i18n="options.lock.15"></option>
+                <option value="30" data-i18n="options.lock.30"></option>
+                <option value="60" data-i18n="options.lock.60"></option>
+                <option value="0" data-i18n="options.lock.0"></option>
             </select>
         </label>
 
         <label class="field">
-            <span class="field__label">Tự xoá clipboard sau khi copy mã</span>
+            <span class="field__label" data-i18n="options.clipboard.label"></span>
             <select id="clipboardClear" class="input">
-                <option value="10">10 giây</option>
-                <option value="20">20 giây</option>
-                <option value="60">60 giây</option>
-                <option value="0">Không tự xoá</option>
+                <option value="10" data-i18n="options.clipboard.10"></option>
+                <option value="20" data-i18n="options.clipboard.20"></option>
+                <option value="60" data-i18n="options.clipboard.60"></option>
+                <option value="0" data-i18n="options.clipboard.0"></option>
             </select>
-            <span class="field__hint">Mã OTP nằm lại trong clipboard có thể bị trang web khác đọc khi bạn dán nhầm chỗ.</span>
+            <span class="field__hint" data-i18n="options.clipboard.hint"></span>
         </label>
 
         <label class="checkline">
             <input id="hideCodes" type="checkbox" />
-            <span>Làm mờ mã cho tới khi rê chuột vào (chống nhìn trộm màn hình)</span>
+            <span data-i18n="options.hideCodes"></span>
         </label>
     </section>
 
     <!-- Vân tay -->
     <section class="card">
-        <h2>Mở khoá bằng vân tay</h2>
-        <p class="card__lead">
-            Dùng Touch ID, Windows Hello hoặc khoá bảo mật để mở vault mà không cần gõ master password.
-            Khoá vẫn được bảo vệ bằng sinh trắc của hệ điều hành, không có bản sao mật khẩu nào được lưu.
-        </p>
+        <h2 data-i18n="options.biometric.title"></h2>
+        <p class="card__lead" data-i18n="options.biometric.lead"></p>
 
         <div id="biometricStatus" class="status-line"></div>
         <div id="biometricAlert" class="alert" hidden></div>
 
         <div class="row-actions">
-            <button id="enrollBiometricBtn" class="btn btn--primary" type="button" hidden>Bật mở khoá bằng vân tay</button>
-            <button id="removeBiometricBtn" class="btn btn--danger" type="button" hidden>Gỡ vân tay</button>
+            <button id="enrollBiometricBtn" class="btn btn--primary" type="button" data-i18n="options.biometric.enable" hidden></button>
+            <button id="removeBiometricBtn" class="btn btn--danger" type="button" data-i18n="options.biometric.remove" hidden></button>
         </div>
     </section>
 
     <!-- Master password -->
     <section class="card">
-        <h2>Đổi master password</h2>
-        <p class="card__lead">
-            Đổi mật khẩu chỉ bọc lại khoá dữ liệu, không mã hoá lại toàn bộ vault nên rất nhanh và không có rủi ro mất dữ liệu.
-        </p>
+        <h2 data-i18n="options.password.title"></h2>
+        <p class="card__lead" data-i18n="options.password.lead"></p>
 
         <form id="passwordForm" autocomplete="off">
             <label class="field">
-                <span class="field__label">Mật khẩu hiện tại</span>
+                <span class="field__label" data-i18n="options.password.current"></span>
                 <input id="currentPassword" class="input" type="password" autocomplete="current-password" required />
             </label>
             <label class="field">
-                <span class="field__label">Mật khẩu mới</span>
+                <span class="field__label" data-i18n="options.password.next"></span>
                 <input id="nextPassword" class="input" type="password" autocomplete="new-password" required />
                 <div class="strength" aria-hidden="true">
                     <span class="strength__bar"></span>
@@ -97,36 +94,33 @@
                 <div id="strengthLabel" class="strength__label"></div>
             </label>
             <label class="field">
-                <span class="field__label">Nhập lại mật khẩu mới</span>
+                <span class="field__label" data-i18n="options.password.confirm"></span>
                 <input id="nextPasswordConfirm" class="input" type="password" autocomplete="new-password" required />
             </label>
 
             <div id="passwordAlert" class="alert" hidden></div>
-            <button id="changePasswordBtn" class="btn btn--primary" type="submit">Đổi mật khẩu</button>
+            <button id="changePasswordBtn" class="btn btn--primary" type="submit" data-i18n="options.password.submit"></button>
         </form>
     </section>
 
     <!-- Thông tin bảo mật -->
     <section class="card">
-        <h2>Cách dữ liệu được bảo vệ</h2>
+        <h2 data-i18n="options.facts.title"></h2>
         <ul class="facts">
-            <li><b>Mã hoá:</b> AES-256-GCM, mỗi lần ghi dùng IV ngẫu nhiên riêng.</li>
-            <li><b>Dẫn xuất khoá:</b> PBKDF2-HMAC-SHA256, 600.000 vòng, salt ngẫu nhiên 16 byte.</li>
-            <li><b>Khi khoá:</b> trên đĩa chỉ có ciphertext. Không có bản sao secret nào ở dạng đọc được.</li>
-            <li><b>Khi mở khoá:</b> khoá dữ liệu nằm trong bộ nhớ phiên của Chrome, tự mất khi đóng trình duyệt.</li>
-            <li><b>Mạng:</b> extension không có quyền truy cập bất kỳ website nào và không gọi mạng.</li>
-            <li><b>Đồng bộ:</b> không dùng chrome.storage.sync, dữ liệu không rời khỏi máy này.</li>
+            <li><b data-i18n="options.facts.encryption"></b> <span data-i18n="options.facts.encryptionText"></span></li>
+            <li><b data-i18n="options.facts.kdf"></b> <span data-i18n="options.facts.kdfText"></span></li>
+            <li><b data-i18n="options.facts.locked"></b> <span data-i18n="options.facts.lockedText"></span></li>
+            <li><b data-i18n="options.facts.unlocked"></b> <span data-i18n="options.facts.unlockedText"></span></li>
+            <li><b data-i18n="options.facts.network"></b> <span data-i18n="options.facts.networkText"></span></li>
+            <li><b data-i18n="options.facts.sync"></b> <span data-i18n="options.facts.syncText"></span></li>
         </ul>
     </section>
 
     <!-- Vùng nguy hiểm -->
     <section class="card card--danger">
-        <h2>Xoá toàn bộ dữ liệu</h2>
-        <p class="card__lead">
-            Xoá vault và mọi account bên trong. Không có bản sao lưu, không khôi phục được.
-            Hãy chắc chắn bạn còn cách khác để đăng nhập các dịch vụ đang bật 2FA.
-        </p>
-        <button id="destroyBtn" class="btn btn--danger" type="button">Xoá vault vĩnh viễn</button>
+        <h2 data-i18n="options.destroy.title"></h2>
+        <p class="card__lead" data-i18n="options.destroy.lead"></p>
+        <button id="destroyBtn" class="btn btn--danger" type="button" data-i18n="options.destroy.action"></button>
     </section>
 </main>
 

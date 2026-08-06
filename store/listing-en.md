@@ -104,6 +104,7 @@ NO NETWORK, NO TRACKING, NO THIRD-PARTY CODE
 
 ALSO INCLUDED
 
+- English and Vietnamese interface, switch instantly with a flag button, no reload needed
 - TOTP and HOTP, SHA-1 / SHA-256 / SHA-512, 6 to 10 digit codes, custom periods
 - Live countdown ring for every code
 - Search and manual reordering
@@ -116,7 +117,7 @@ There is no backup or export feature yet. If you forget your master password, yo
 recovered by anyone, including us, because the key is derived from that password alone. Store your master
 password somewhere safe, and keep the recovery codes each service gives you when you enable 2FA.
 
-Note on the interface language: the user interface is currently in Vietnamese. English is planned.
+Available in English and Vietnamese, switchable with a flag button inside the extension.
 
 Requires Chrome 116 or later.
 ```
@@ -133,7 +134,9 @@ Productivity  >  Workflow & Planning
 English (United States)
 ```
 
-Read the warning in "Language mismatch" at the bottom of this file before choosing.
+The interface ships in both English and Vietnamese, so an English listing is accurate. If you also want a
+Vietnamese store listing, add it under "Add a language" in the dashboard and paste the Vietnamese copy from
+`store/listing.md`.
 
 ---
 
@@ -280,8 +283,8 @@ on first run. No account, no login and no network connection are needed.
 7. To test locking, press the padlock button in the popup toolbar. The vault locks and asks for the
    master password again.
 
-Note: the interface is currently in Vietnamese. The steps above name every button in Vietnamese with an
-English translation next to it.
+8. To test localisation, click the Vietnamese flag at the bottom of the popup. The whole interface switches
+   immediately without a reload. Click the British flag to switch back.
 ```
 
 ---
@@ -323,27 +326,20 @@ Do not use real secrets in the screenshots. Create a few throwaway accounts firs
 
 ---
 
-## Language mismatch: read this before you submit
+## Localisation
 
-The extension name and summary shown on the store come from `manifest.json`, which is now in English.
-The interface inside the extension is still in Vietnamese.
+The interface is available in English (default) and Vietnamese, switchable at runtime with a flag button.
+`_locales/en` and `_locales/vi` also localise the extension name and description, so the Chrome Web Store shows
+the right language for each visitor automatically.
 
-Three options, pick one:
-
-1. **Set the listing language to Vietnamese.** Honest and consistent, but limits discovery to Vietnamese users.
-2. **Set it to English and keep the disclosure line** already included in the description above. Acceptable, but
-   English speakers who install it will meet a Vietnamese interface and may leave one-star reviews.
-3. **Localise the interface first** using `_locales/` with English and Vietnamese, then set the listing to English.
-   This is the right answer if you want a global audience. It is roughly a day of work: about 120 UI strings across
-   four pages, plus `default_locale` in the manifest.
-
-I recommend option 3 before a public launch, and option 1 if you want to ship this week.
+Setting the listing language to English is therefore accurate. Optionally add a Vietnamese listing in the
+dashboard as well, using the copy in `store/listing.md`.
 
 ---
 
 ## Pre-submit checklist
 
-- [ ] `npm test` is green (43 tests)
+- [ ] `npm test` is green (49 tests)
 - [ ] `npm run build` succeeds, take the file from `dist/`
 - [ ] `version` bumped in **both** `src/manifest.json` and `package.json`, they must match or the build fails
 - [ ] `PRIVACY.md` published at a public URL and pasted into the privacy policy field

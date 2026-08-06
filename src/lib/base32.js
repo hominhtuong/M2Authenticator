@@ -3,6 +3,8 @@
  * Không dùng thư viện ngoài: đây là code chạm trực tiếp vào seed 2FA.
  */
 
+import { fail } from './errors.js';
+
 const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
 
 const LOOKUP = new Map();
@@ -18,7 +20,7 @@ export function normalizeBase32(input) {
 
 export function base32Decode(input) {
     const clean = normalizeBase32(input);
-    if (!clean) throw new Error('Secret rỗng.');
+    if (!clean) fail('error.base32Empty');
 
     let bits = 0;
     let value = 0;
@@ -26,9 +28,8 @@ export function base32Decode(input) {
 
     for (const ch of clean) {
         const idx = LOOKUP.get(ch);
-        if (idx === undefined) {
-            throw new Error(`Secret Base32 không hợp lệ (ký tự "${ch}").`);
-        }
+        if (idx === undefined) fail('error.base32Invalid', { char: ch });
+
         value = (value << 5) | idx;
         bits += 5;
         if (bits >= 8) {
@@ -37,7 +38,7 @@ export function base32Decode(input) {
         }
     }
 
-    if (out.length === 0) throw new Error('Secret Base32 quá ngắn.');
+    if (out.length === 0) fail('error.base32TooShort');
     return new Uint8Array(out);
 }
 

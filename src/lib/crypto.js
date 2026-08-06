@@ -156,6 +156,8 @@ const PASSPHRASE_LENGTH = 16;
 export function assessPassword(password) {
     const value = String(password ?? '');
     const lower = value.toLowerCase();
+
+    /** @type {Array<{code: string, params?: Record<string, number>}>} */
     const issues = [];
 
     const classes =
@@ -167,17 +169,15 @@ export function assessPassword(password) {
     const uniqueChars = new Set(value).size;
 
     if (value.length < MIN_LENGTH) {
-        issues.push(`Cần ít nhất ${MIN_LENGTH} ký tự.`);
+        issues.push({ code: 'password.tooShort', params: { min: MIN_LENGTH } });
     } else if (value.length < PASSPHRASE_LENGTH && classes < 3) {
-        issues.push(
-            `Dưới ${PASSPHRASE_LENGTH} ký tự thì cần trộn ít nhất 3 nhóm: chữ thường, chữ hoa, số, ký tự đặc biệt. Hoặc đơn giản hơn: dùng một câu dài dễ nhớ.`,
-        );
+        issues.push({ code: 'password.needMix', params: { length: PASSPHRASE_LENGTH } });
     }
 
-    if (uniqueChars < 5) issues.push('Quá ít ký tự khác nhau.');
-    if (/^(.+?)\1+$/.test(value)) issues.push('Không dùng một đoạn lặp đi lặp lại.');
+    if (uniqueChars < 5) issues.push({ code: 'password.tooFewUnique' });
+    if (/^(.+?)\1+$/.test(value)) issues.push({ code: 'password.repeated' });
     if (BLOCKLIST.some((entry) => lower === entry || lower.startsWith(entry))) {
-        issues.push('Mật khẩu này nằm trong danh sách bị dò đầu tiên.');
+        issues.push({ code: 'password.blocklisted' });
     }
 
     // Điểm chủ yếu đi theo độ dài, đa dạng ký tự chỉ cộng thêm.
@@ -189,10 +189,13 @@ export function assessPassword(password) {
     if (classes >= 3) score += 1;
     if (issues.length > 0) score = Math.min(score, 1);
 
+    const level = Math.min(score, 5);
+
     return {
         ok: issues.length === 0,
         issues,
-        score: Math.min(score, 5),
-        label: ['Rất yếu', 'Yếu', 'Trung bình', 'Khá', 'Mạnh', 'Rất mạnh'][Math.min(score, 5)],
+        score: level,
+        // Khoá tra bảng dịch, không phải câu chữ: tầng lib không biết người dùng xem ngôn ngữ nào.
+        labelKey: `password.strength.${level}`,
     };
 }

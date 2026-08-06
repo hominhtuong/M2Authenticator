@@ -11,6 +11,7 @@
  */
 
 import { fromBase64, randomBytes, toBase64 } from './crypto.js';
+import { fail } from './errors.js';
 
 const RP_NAME = 'M2 Authenticator';
 const USER_NAME = 'vault';
@@ -43,7 +44,7 @@ function bufferToBase64(buffer) {
  */
 export async function registerBiometric() {
     if (!(await isPlatformAuthenticatorAvailable())) {
-        throw new Error('Thiết bị này không có cảm biến vân tay / Windows Hello khả dụng.');
+        fail('error.biometricUnavailable');
     }
 
     const prfSalt = randomBytes(32);
@@ -69,13 +70,11 @@ export async function registerBiometric() {
         },
     });
 
-    if (!credential) throw new Error('Đăng ký vân tay bị huỷ.');
+    if (!credential) fail('error.biometricRegistrationCancelled');
 
     const results = credential.getClientExtensionResults();
     if (!results?.prf?.enabled) {
-        throw new Error(
-            'Thiết bị hoặc trình duyệt này không hỗ trợ WebAuthn PRF, nên chưa thể mở khoá bằng vân tay. Hãy tiếp tục dùng master password.',
-        );
+        fail('error.biometricPrfUnsupported');
     }
 
     const credentialId = bufferToBase64(credential.rawId);
@@ -107,30 +106,32 @@ export async function evaluatePrf(credentialIdBase64, prfSaltBase64) {
         },
     });
 
-    if (!assertion) throw new Error('Xác thực vân tay bị huỷ.');
+    if (!assertion) fail('error.biometricCancelled');
 
     const results = assertion.getClientExtensionResults();
     const first = results?.prf?.results?.first;
     if (!first) {
-        throw new Error('Authenticator không trả về dữ liệu PRF. Hãy dùng master password.');
+        fail('error.biometricNoPrfResult');
     }
 
     return new Uint8Array(first);
 }
 
-/** Chuyển lỗi WebAuthn thành câu tiếng Việt đọc được. */
-export function describeWebAuthnError(error) {
-    if (!error) return 'Lỗi không xác định.';
-    switch (error.name) {
+/**
+ * Đổi DOMException của WebAuthn thành mã lỗi của dự án để tầng UI dịch.
+ * Lỗi không nhận ra thì trả về null, chỗ gọi tự xử lý.
+ */
+export function webAuthnErrorCode(error) {
+    switch (error?.name) {
         case 'NotAllowedError':
-            return 'Bạn đã huỷ hoặc hết thời gian xác thực sinh trắc.';
+            return 'error.biometricCancelled';
         case 'InvalidStateError':
-            return 'Thiết bị này đã đăng ký rồi.';
+            return 'error.biometricAlreadyRegistered';
         case 'NotSupportedError':
-            return 'Trình duyệt hoặc thiết bị không hỗ trợ kiểu xác thực này.';
+            return 'error.biometricNotSupported';
         case 'SecurityError':
-            return 'Ngữ cảnh không an toàn để dùng WebAuthn.';
+            return 'error.biometricInsecureContext';
         default:
-            return error.message || String(error);
+            return null;
     }
 }

@@ -83,7 +83,7 @@ test('chuẩn hoá tên thuật toán', () => {
     assert.equal(normalizeAlgorithm('SHA-256'), 'SHA-256');
     assert.equal(normalizeAlgorithm('sha_512'), 'SHA-512');
     assert.equal(normalizeAlgorithm(''), 'SHA-1');
-    assert.throws(() => normalizeAlgorithm('md5'), /không hỗ trợ/);
+    assert.throws(() => normalizeAlgorithm('md5'), { code: 'error.algorithmUnsupported' });
 });
 
 test('đếm ngược nằm trong khoảng 1 đến period', () => {
@@ -97,5 +97,7 @@ test('đếm ngược nằm trong khoảng 1 đến period', () => {
 });
 
 test('secret hỏng thì báo lỗi rõ ràng', async () => {
-    await assert.rejects(() => generateTOTP({ secret: 'không-phải-base32-1' }), /không hợp lệ/);
+    await assert.rejects(() => generateTOTP({ secret: 'không-phải-base32-1' }), {
+        code: 'error.base32Invalid',
+    });
 });

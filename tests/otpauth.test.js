@@ -43,25 +43,28 @@ test('HOTP giữ counter', () => {
 
 test('từ chối URI sai', () => {
     assert.equal(isOtpAuthUri('https://example.com'), false);
-    assert.throws(() => parseOtpAuthUri('https://example.com'), /không phải QR 2FA/);
-    assert.throws(() => parseOtpAuthUri('otpauth://totp/X'), /không chứa secret/);
-    assert.throws(() => parseOtpAuthUri('otpauth://totp/X?secret=0011'), /Base32/);
-    assert.throws(() => parseOtpAuthUri('otpauth://yubikey/X?secret=JBSWY3DPEHPK3PXP'), /không hỗ trợ/);
-    assert.throws(
-        () => parseOtpAuthUri('otpauth://totp/X?secret=JBSWY3DPEHPK3PXP&digits=99'),
-        /Số chữ số/,
-    );
-    assert.throws(
-        () => parseOtpAuthUri('otpauth://totp/X?secret=JBSWY3DPEHPK3PXP&period=0'),
-        /Chu kỳ/,
-    );
+    assert.throws(() => parseOtpAuthUri('https://example.com'), { code: 'error.otpNotOtpauth' });
+    assert.throws(() => parseOtpAuthUri('otpauth://totp/X'), { code: 'error.otpNoSecret' });
+    assert.throws(() => parseOtpAuthUri('otpauth://totp/X?secret=0011'), {
+        code: 'error.otpSecretNotBase32',
+    });
+    assert.throws(() => parseOtpAuthUri('otpauth://yubikey/X?secret=JBSWY3DPEHPK3PXP'), {
+        code: 'error.otpTypeUnsupported',
+    });
+    assert.throws(() => parseOtpAuthUri('otpauth://totp/X?secret=JBSWY3DPEHPK3PXP&digits=99'), {
+        code: 'error.otpDigitsInvalid',
+    });
+    assert.throws(() => parseOtpAuthUri('otpauth://totp/X?secret=JBSWY3DPEHPK3PXP&period=0'), {
+        code: 'error.otpPeriodInvalid',
+    });
 });
 
 test('nhãn hiển thị ghép issuer và account', () => {
     assert.equal(displayLabel({ issuer: 'GitHub', account: 'me@x.com' }), 'GitHub (me@x.com)');
     assert.equal(displayLabel({ issuer: 'GitHub', account: '' }), 'GitHub');
     assert.equal(displayLabel({ issuer: '', account: 'me@x.com' }), 'me@x.com');
-    assert.equal(displayLabel({ issuer: '', account: '' }), 'Không tên');
+    // Chuỗi thay thế do chỗ gọi truyền vào vì lib không biết ngôn ngữ đang dùng.
+    assert.equal(displayLabel({ issuer: '', account: '' }, 'Untitled'), 'Untitled');
 });
 
 test('khoá so trùng bỏ qua hoa thường và khoảng trắng trong secret', () => {

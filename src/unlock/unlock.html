@@ -1,8 +1,8 @@
 <!doctype html>
-<html lang="vi">
+<html lang="en">
 <head>
     <meta charset="utf-8" />
-    <title>M2 Authenticator - Mở khoá</title>
+    <title>M2 Authenticator</title>
     <link rel="stylesheet" href="../assets/styles/app.css" />
     <link rel="stylesheet" href="unlock.css" />
 </head>
@@ -10,7 +10,7 @@
 <main class="card">
     <div class="brand">
         <img src="../assets/icons/icon48.png" alt="" width="40" height="40" />
-        <h1 id="title">Mở khoá</h1>
+        <h1 id="title"></h1>
     </div>
 
     <p id="lead" class="lead"></p>
@@ -20,12 +20,9 @@
     <!-- Tạo master password -->
     <form id="setupForm" hidden autocomplete="off">
         <label class="field">
-            <span class="field__label">Master password</span>
+            <span class="field__label" data-i18n="unlock.setup.password"></span>
             <input id="newPassword" class="input" type="password" autocomplete="new-password" required />
-            <span class="field__hint">
-                Cách dễ nhớ mà vẫn mạnh: một câu dài từ 16 ký tự trở lên, ví dụ "con mèo trèo cây cau 2026".
-                Không cần ký tự đặc biệt nếu câu đủ dài.
-            </span>
+            <span class="field__hint" data-i18n="unlock.setup.passwordHint"></span>
             <div class="strength" aria-hidden="true">
                 <span class="strength__bar"></span>
                 <span class="strength__bar"></span>
@@ -37,34 +34,34 @@
         </label>
 
         <label class="field">
-            <span class="field__label">Nhập lại master password</span>
+            <span class="field__label" data-i18n="unlock.setup.confirm"></span>
             <input id="confirmPassword" class="input" type="password" autocomplete="new-password" required />
         </label>
 
-        <div class="alert alert--warning">
-            Mật khẩu này không được lưu ở bất cứ đâu và không có cách khôi phục. Quên là mất toàn bộ mã 2FA đã lưu.
-        </div>
+        <div class="alert alert--warning" data-i18n="unlock.setup.warning"></div>
 
         <label class="checkline">
             <input id="ackLoss" type="checkbox" />
-            <span>Tôi hiểu và đã ghi nhớ hoặc lưu mật khẩu ở nơi an toàn.</span>
+            <span data-i18n="unlock.setup.ack"></span>
         </label>
 
-        <button id="createBtn" class="btn btn--primary btn--block" type="submit">Tạo vault</button>
+        <button id="createBtn" class="btn btn--primary btn--block" type="submit" data-i18n="unlock.setup.action"></button>
     </form>
 
     <!-- Mở khoá -->
     <form id="unlockForm" hidden autocomplete="off">
         <label class="field">
-            <span class="field__label">Master password</span>
+            <span class="field__label" data-i18n="unlock.password"></span>
             <input id="password" class="input" type="password" autocomplete="current-password" required />
         </label>
-        <button id="unlockBtn" class="btn btn--primary btn--block" type="submit">Mở khoá</button>
+        <button id="unlockBtn" class="btn btn--primary btn--block" type="submit" data-i18n="unlock.action"></button>
     </form>
 
-    <button id="biometricBtn" class="btn btn--block" type="button" hidden>Mở khoá bằng vân tay</button>
+    <button id="biometricBtn" class="btn btn--block" type="button" data-i18n="unlock.biometric" hidden></button>
 
     <p id="footnote" class="footnote"></p>
+
+    <div id="langSlot" class="card__lang"></div>
 </main>
 
 <script type="module" src="unlock.js"></script>

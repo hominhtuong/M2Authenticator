@@ -20,6 +20,7 @@
 import { base32Encode } from './base32.js';
 import { decodeMessage, firstVarint, firstString, firstBytes, allBytes } from './protobuf.js';
 import { DEFAULT_PERIOD } from './totp.js';
+import { fail } from './errors.js';
 
 const ALGORITHM_BY_ID = {
     0: 'SHA-1', // UNSPECIFIED - Google Authenticator mặc định SHA-1
@@ -70,7 +71,7 @@ function parseOtpParameters(bytes) {
 
     const secretBytes = firstBytes(fields, 1);
     if (!secretBytes || secretBytes.length === 0) {
-        throw new Error('Một mục trong QR không có secret.');
+        fail('error.migrationEntryNoSecret');
     }
 
     const { issuer, account } = splitName(firstString(fields, 2), firstString(fields, 3));
@@ -78,7 +79,7 @@ function parseOtpParameters(bytes) {
     const algorithmId = Number(firstVarint(fields, 4, 1n));
     const algorithm = ALGORITHM_BY_ID[algorithmId];
     if (!algorithm) {
-        throw new Error(`Thuật toán không hỗ trợ trong QR (mã ${algorithmId}). MD5 không được dùng cho 2FA.`);
+        fail('error.migrationAlgorithmUnsupported', { id: algorithmId });
     }
 
     const digits = DIGITS_BY_ID[Number(firstVarint(fields, 5, 1n))] ?? 6;
@@ -104,31 +105,31 @@ function parseOtpParameters(bytes) {
 export function parseMigrationUri(raw) {
     const text = String(raw ?? '').trim();
     if (!isMigrationUri(text)) {
-        throw new Error('Đây không phải QR chuyển tài khoản của Google Authenticator.');
+        fail('error.migrationNotMigrationUri');
     }
 
     let url;
     try {
         url = new URL(text);
     } catch {
-        throw new Error('Link migration trong QR không hợp lệ.');
+        fail('error.migrationBadUri');
     }
 
     const data = url.searchParams.get('data');
-    if (!data) throw new Error('QR migration thiếu tham số data.');
+    if (!data) fail('error.migrationNoData');
 
     let payloadBytes;
     try {
         payloadBytes = base64UrlToBytes(data);
     } catch {
-        throw new Error('Dữ liệu trong QR migration không giải mã được (base64 hỏng).');
+        fail('error.migrationBadBase64');
     }
 
     const fields = decodeMessage(payloadBytes);
     const accounts = allBytes(fields, 1).map(parseOtpParameters);
 
     if (accounts.length === 0) {
-        throw new Error('QR migration không chứa account nào.');
+        fail('error.migrationNoAccounts');
     }
 
     return {

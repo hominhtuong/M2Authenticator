@@ -7,8 +7,9 @@
 
 import { $, $$, show } from '../lib/dom.js';
 import { assessPassword } from '../lib/crypto.js';
+import { buildLanguageSwitcher, describeError, initI18n, onLanguageChange, t } from '../lib/i18n.js';
 import * as vault from '../lib/vault.js';
-import { describeWebAuthnError, evaluatePrf, isPlatformAuthenticatorAvailable } from '../lib/webauthn.js';
+import { evaluatePrf, isPlatformAuthenticatorAvailable, webAuthnErrorCode } from '../lib/webauthn.js';
 
 const params = new URLSearchParams(location.search);
 const wantSetup = params.has('setup');
@@ -32,6 +33,8 @@ const ui = {
     footnote: $('#footnote'),
 };
 
+let mode = 'unlock'; // 'setup' | 'unlock'
+
 function setAlert(message, variant = 'error') {
     if (!message) {
         show(ui.alert, false);
@@ -40,6 +43,11 @@ function setAlert(message, variant = 'error') {
     ui.alert.className = `alert alert--${variant}`;
     ui.alert.textContent = message;
     show(ui.alert, true);
+}
+
+function showError(error) {
+    const code = error?.name ? webAuthnErrorCode(error) : null;
+    setAlert(code ? t(code) : describeError(error));
 }
 
 function done() {
@@ -58,13 +66,13 @@ function renderStrength() {
         else delete bar.dataset.on;
     });
 
-    ui.strengthLabel.textContent = ui.newPassword.value
-        ? result.ok
-            ? `Độ mạnh: ${result.label}`
-            : result.issues[0]
-        : '';
-
-    return result;
+    if (!ui.newPassword.value) {
+        ui.strengthLabel.textContent = '';
+    } else if (result.ok) {
+        ui.strengthLabel.textContent = t('password.strength', { label: t(result.labelKey) });
+    } else {
+        ui.strengthLabel.textContent = t(result.issues[0].code, result.issues[0].params);
+    }
 }
 
 function refreshCreateButton() {
@@ -85,31 +93,24 @@ ui.setupForm.addEventListener('submit', async (event) => {
     event.preventDefault();
 
     if (ui.newPassword.value !== ui.confirmPassword.value) {
-        setAlert('Hai lần nhập mật khẩu không khớp.');
+        setAlert(t('unlock.setup.mismatch'));
         return;
     }
 
     ui.createBtn.disabled = true;
-    ui.createBtn.textContent = 'Đang tạo khoá...';
+    ui.createBtn.textContent = t('unlock.setup.working');
     setAlert('');
 
     try {
         await vault.initialize(ui.newPassword.value);
-
-        // Bản 1.x lưu secret trần, chuyển luôn vào vault rồi xoá bản plaintext.
-        if (await vault.hasLegacyPlaintextData()) {
-            const result = await vault.migrateLegacyPlaintextData();
-            setAlert(`Đã tạo vault và chuyển ${result.added} account từ bản cũ vào dạng mã hoá.`, 'success');
-        }
-
         ui.newPassword.value = '';
         ui.confirmPassword.value = '';
         chrome.tabs.create({ url: chrome.runtime.getURL('options/options.html?welcome=1') });
         done();
     } catch (error) {
-        setAlert(error.message);
+        showError(error);
         ui.createBtn.disabled = false;
-        ui.createBtn.textContent = 'Tạo vault';
+        ui.createBtn.textContent = t('unlock.setup.action');
     }
 });
 
@@ -118,7 +119,7 @@ ui.setupForm.addEventListener('submit', async (event) => {
 ui.unlockForm.addEventListener('submit', async (event) => {
     event.preventDefault();
     ui.unlockBtn.disabled = true;
-    ui.unlockBtn.textContent = 'Đang mở khoá...';
+    ui.unlockBtn.textContent = t('unlock.working');
     setAlert('');
 
     try {
@@ -126,35 +127,36 @@ ui.unlockForm.addEventListener('submit', async (event) => {
         ui.password.value = '';
         done();
     } catch (error) {
-        setAlert(error.message);
+        showError(error);
         ui.password.select();
     } finally {
         ui.unlockBtn.disabled = false;
-        ui.unlockBtn.textContent = 'Mở khoá';
+        ui.unlockBtn.textContent = t('unlock.action');
     }
 });
 
 async function unlockWithBiometric() {
     ui.biometricBtn.disabled = true;
-    ui.biometricBtn.textContent = 'Đang chờ xác thực...';
+    ui.biometricBtn.textContent = t('unlock.biometricWaiting');
     setAlert('');
 
     let prfOutput;
     try {
         const descriptor = await vault.getBiometricDescriptor();
         if (!descriptor?.credentialId || !descriptor?.prfSalt) {
-            throw new Error('Chưa đăng ký mở khoá bằng vân tay.');
+            setAlert(t('error.biometricBadRecord'));
+            return;
         }
 
         prfOutput = await evaluatePrf(descriptor.credentialId, descriptor.prfSalt);
         await vault.unlockWithPrf(prfOutput);
         done();
     } catch (error) {
-        setAlert(error.name ? describeWebAuthnError(error) : error.message);
+        showError(error);
     } finally {
         if (prfOutput) prfOutput.fill(0);
         ui.biometricBtn.disabled = false;
-        ui.biometricBtn.textContent = 'Mở khoá bằng vân tay';
+        ui.biometricBtn.textContent = t('unlock.biometric');
     }
 }
 
@@ -162,37 +164,47 @@ ui.biometricBtn.addEventListener('click', unlockWithBiometric);
 
 // ------------------------------------------------------------ khởi động
 
+/** Chữ dựng bằng JS phải vẽ lại khi đổi ngôn ngữ, khác với chữ có data-i18n trong HTML. */
+function paintDynamicText() {
+    if (mode === 'setup') {
+        ui.title.textContent = t('unlock.setup.title');
+        ui.lead.textContent = t('unlock.setup.lead');
+        ui.footnote.textContent = '';
+    } else {
+        ui.title.textContent = t('unlock.title');
+        ui.lead.textContent = t('unlock.lead');
+        ui.footnote.textContent = t('unlock.footnote');
+    }
+    if (ui.newPassword.value) renderStrength();
+}
+
 async function boot() {
+    await initI18n();
+    $('#langSlot').append(buildLanguageSwitcher());
+    onLanguageChange(paintDynamicText);
+
     const initialized = await vault.isInitialized();
 
     if (!initialized || wantSetup) {
         if (initialized) {
-            setAlert('Vault đã tồn tại, không tạo lại được.', 'warning');
+            mode = 'unlock';
+            paintDynamicText();
+            setAlert(t('unlock.setup.exists'), 'warning');
             show(ui.unlockForm, true);
             ui.password.focus();
             return;
         }
 
-        ui.title.textContent = 'Tạo master password';
-        ui.lead.textContent =
-            'Master password dùng để mã hoá toàn bộ mã 2FA bằng AES-256-GCM. Không có nó, dữ liệu trên máy chỉ là chuỗi vô nghĩa.';
+        mode = 'setup';
+        paintDynamicText();
         show(ui.setupForm, true);
         ui.createBtn.disabled = true;
-
-        const legacyCount = await vault.countLegacyAccounts();
-        if (legacyCount > 0) {
-            setAlert(
-                `Phát hiện ${legacyCount} account của bản cũ đang lưu KHÔNG mã hoá. Chúng sẽ được chuyển vào vault và xoá bản plaintext ngay sau khi bạn tạo mật khẩu.`,
-                'warning',
-            );
-        }
-
         ui.newPassword.focus();
         return;
     }
 
-    ui.title.textContent = 'Mở khoá vault';
-    ui.lead.textContent = 'Nhập master password để giải mã danh sách mã 2FA.';
+    mode = 'unlock';
+    paintDynamicText();
     show(ui.unlockForm, true);
 
     const biometricReady = (await vault.hasBiometric()) && (await isPlatformAuthenticatorAvailable());
@@ -200,7 +212,7 @@ async function boot() {
 
     const status = await vault.getLockoutStatus();
     if (status.lockedOut) {
-        setAlert(`Nhập sai quá nhiều lần. Thử lại sau ${Math.ceil(status.remainingMs / 1000)} giây.`);
+        setAlert(t('error.tooManyAttempts', { seconds: Math.ceil(status.remainingMs / 1000) }));
     }
 
     if (wantBiometric && biometricReady) {
@@ -208,8 +220,6 @@ async function boot() {
     } else {
         ui.password.focus();
     }
-
-    ui.footnote.textContent = 'Vault tự khoá lại theo thời gian rảnh bạn đặt trong Cài đặt.';
 }
 
 boot();

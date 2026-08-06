@@ -65,8 +65,11 @@ export function toast(message, variant = 'info', timeoutMs = 3200) {
     }, timeoutMs);
 }
 
-/** Hộp xác nhận thay cho confirm(), vì confirm() làm popup đóng trên một số nền tảng. */
-export function confirmDialog({ title, message, confirmLabel = 'Xác nhận', danger = false }) {
+/**
+ * Hộp xác nhận thay cho confirm(), vì confirm() làm popup đóng trên một số nền tảng.
+ * Nhãn nút do chỗ gọi truyền vào đã dịch sẵn: module này không đụng tới i18n.
+ */
+export function confirmDialog({ title, message, confirmLabel, cancelLabel, danger = false }) {
     return new Promise((resolve) => {
         const dialog = el('dialog', { class: 'confirm' }, [
             el('h2', { class: 'confirm__title', text: title }),
@@ -75,7 +78,7 @@ export function confirmDialog({ title, message, confirmLabel = 'Xác nhận', da
                 el('button', {
                     class: 'btn btn--ghost',
                     type: 'button',
-                    text: 'Huỷ',
+                    text: cancelLabel,
                     onClick: () => {
                         dialog.close();
                         resolve(false);

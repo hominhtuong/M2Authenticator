@@ -28,9 +28,9 @@ test('chuẩn hoá bỏ khoảng trắng, gạch nối, padding và chữ thư�
 });
 
 test('ký tự ngoài bảng chữ cái bị từ chối', () => {
-    assert.throws(() => base32Decode('MZXW6YTB1'), /không hợp lệ/);
-    assert.throws(() => base32Decode('AB=CD'), /không hợp lệ/);
-    assert.throws(() => base32Decode(''), /rỗng/);
+    assert.throws(() => base32Decode('MZXW6YTB1'), { code: 'error.base32Invalid' });
+    assert.throws(() => base32Decode('AB=CD'), { code: 'error.base32Invalid' });
+    assert.throws(() => base32Decode(''), { code: 'error.base32Empty' });
     assert.equal(isValidBase32('JBSWY3DPEHPK3PXP'), true);
     assert.equal(isValidBase32('0189'), false);
 });

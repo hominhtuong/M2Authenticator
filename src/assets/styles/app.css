@@ -342,6 +342,71 @@ select {
     font-size: 12px;
 }
 
+/* ------------------------------------------------------- đổi ngôn ngữ */
+
+.langswitch {
+    display: inline-flex;
+    gap: 4px;
+    padding: 4px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg-elevated);
+}
+
+.langswitch__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 10px;
+    border: 1px solid transparent;
+    border-radius: 7px;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 500;
+    transition: background 0.12s ease, color 0.12s ease;
+}
+
+.langswitch__btn svg {
+    display: block;
+    border-radius: 2px;
+    /* Viền mỏng để cờ có nền trắng không chìm vào nền tối */
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.22);
+}
+
+.langswitch__btn:hover {
+    color: var(--text);
+}
+
+.langswitch__btn[data-active='true'] {
+    background: var(--bg-input);
+    border-color: var(--border-strong);
+    color: var(--text);
+}
+
+.langswitch__btn:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+}
+
+.langswitch--compact {
+    padding: 2px;
+    border-color: transparent;
+    background: transparent;
+}
+
+.langswitch--compact .langswitch__btn {
+    padding: 5px 6px;
+}
+
+.langswitch--compact .langswitch__btn[data-active='false'] {
+    opacity: 0.4;
+}
+
+.langswitch--compact .langswitch__btn[data-active='false']:hover {
+    opacity: 0.8;
+}
+
 .visually-hidden {
     position: absolute;
     width: 1px;

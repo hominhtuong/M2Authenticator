@@ -3,6 +3,7 @@
  */
 
 import { base32Decode } from './base32.js';
+import { fail } from './errors.js';
 
 export const ALGORITHMS = ['SHA-1', 'SHA-256', 'SHA-512'];
 export const DEFAULT_PERIOD = 30;
@@ -22,7 +23,7 @@ export function normalizeAlgorithm(algorithm) {
         case '':
             return DEFAULT_ALGORITHM;
         default:
-            throw new Error(`Thuật toán không hỗ trợ: ${algorithm}`);
+            return fail('error.algorithmUnsupported', { algorithm });
     }
 }
 
@@ -68,7 +69,7 @@ export async function generateHOTP({
     const algo = normalizeAlgorithm(algorithm);
     const digitCount = Number(digits) || DEFAULT_DIGITS;
     if (digitCount < 6 || digitCount > 10) {
-        throw new Error('Số chữ số phải nằm trong khoảng 6 đến 10.');
+        fail('error.digitsRange');
     }
 
     const keyBytes = base32Decode(secret);
@@ -85,7 +86,7 @@ export async function generateTOTP({
     algorithm = DEFAULT_ALGORITHM,
 }) {
     const step = Number(period) || DEFAULT_PERIOD;
-    if (step <= 0) throw new Error('Chu kỳ phải lớn hơn 0.');
+    if (step <= 0) fail('error.periodPositive');
     const counter = Math.floor(timeMs / 1000 / step);
     return generateHOTP({ secret, counter, digits, algorithm });
 }

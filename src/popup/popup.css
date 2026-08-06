@@ -232,3 +232,19 @@
     font-size: 11px;
     font-variant-numeric: tabular-nums;
 }
+
+/* ----------------------------------------------------- đổi ngôn ngữ */
+
+.screen__lang {
+    display: flex;
+    justify-content: center;
+    margin-top: 16px;
+}
+
+.popup-footer {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 8px;
+    margin-top: 4px;
+    border-top: 1px solid var(--border);
+}

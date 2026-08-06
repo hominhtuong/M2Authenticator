@@ -7,6 +7,7 @@ import { $, $$, clear, el, show, toast } from '../lib/dom.js';
 import { dedupeKey, displayLabel, isOtpAuthUri, parseOtpAuthUri } from '../lib/otpauth.js';
 import { isMigrationUri, parseMigrationUri } from '../lib/migration.js';
 import { readQrFromBlob, readQrFromFiles } from '../lib/qr.js';
+import { buildLanguageSwitcher, describeError, initI18n, onLanguageChange, t } from '../lib/i18n.js';
 import * as vault from '../lib/vault.js';
 
 const ui = {
@@ -26,8 +27,10 @@ const ui = {
 /** Hàng đang chờ duyệt: { account, selected, duplicate } */
 let pending = [];
 let existingKeys = new Set();
-/** Gom các phần của một lần export nhiều QR: batchId => Set(index đã có) */
+/** Gom các phần của một lần export nhiều QR: batchId => { size, seen:Set } */
 const batches = new Map();
+/** Trạng thái ô thông báo, giữ lại để vẽ lại được khi đổi ngôn ngữ. */
+let status = null;
 
 // ---------------------------------------------------------------- tabs
 
@@ -41,13 +44,21 @@ for (const tab of $$('.tab')) {
 
 // -------------------------------------------------------------- trạng thái
 
-function setStatus(message, variant = 'info') {
-    if (!message) {
+/** Nhớ khoá dịch chứ không nhớ câu chữ, để đổi ngôn ngữ là câu tự đổi theo. */
+function setStatus(parts, variant = 'info') {
+    status = parts ? { parts, variant } : null;
+    paintStatus();
+}
+
+function paintStatus() {
+    if (!status) {
         show(ui.scanStatus, false);
         return;
     }
-    ui.scanStatus.className = `alert alert--${variant}`;
-    ui.scanStatus.textContent = message;
+    ui.scanStatus.className = `alert alert--${status.variant}`;
+    ui.scanStatus.textContent = status.parts
+        .map((part) => (typeof part === 'string' ? part : t(part.key, part.params)))
+        .join(' ');
     show(ui.scanStatus, true);
 }
 
@@ -57,32 +68,39 @@ function setStatus(message, variant = 'info') {
 function parseQrValue(raw) {
     if (isMigrationUri(raw)) {
         const result = parseMigrationUri(raw);
+        const previous = batches.get(result.batch.id)?.seen ?? [];
         batches.set(result.batch.id, {
             size: result.batch.size,
-            seen: new Set([...(batches.get(result.batch.id)?.seen ?? []), result.batch.index]),
+            seen: new Set([...previous, result.batch.index]),
         });
         return result.accounts;
     }
-    if (isOtpAuthUri(raw)) {
-        return [parseOtpAuthUri(raw)];
-    }
-    throw new Error('Mã QR này không phải QR 2FA.');
+    if (isOtpAuthUri(raw)) return [parseOtpAuthUri(raw)];
+
+    return [];
 }
 
 function describeBatches() {
-    const messages = [];
+    const parts = [];
     for (const [id, info] of batches) {
         if (info.size <= 1) continue;
         const missing = info.size - info.seen.size;
-        if (missing > 0) {
-            messages.push(
-                `Lần xuất này gồm ${info.size} mã QR, bạn mới nhập ${info.seen.size}. Còn thiếu ${missing} mã (batch ${id}).`,
-            );
-        } else {
-            messages.push(`Đã nhập đủ ${info.size} mã QR của lần xuất này.`);
-        }
+        parts.push(
+            missing > 0
+                ? { key: 'import.batchMissing', params: { size: info.size, seen: info.seen.size, missing, id } }
+                : { key: 'import.batchComplete', params: { size: info.size } },
+        );
     }
-    return messages;
+    return parts;
+}
+
+function paintBatchNotice(parts) {
+    if (parts.length === 0) {
+        show(ui.batchNotice, false);
+        return;
+    }
+    ui.batchNotice.textContent = parts.map((part) => t(part.key, part.params)).join(' ');
+    show(ui.batchNotice, true);
 }
 
 async function ingestRawValues(values, sourceErrors = []) {
@@ -91,17 +109,24 @@ async function ingestRawValues(values, sourceErrors = []) {
 
     for (const raw of values) {
         try {
-            parsed.push(...parseQrValue(raw));
+            const found = parseQrValue(raw);
+            if (found.length === 0) errors.push({ name: 'QR', code: 'error.otpNotOtpauth', params: {} });
+            else parsed.push(...found);
         } catch (error) {
-            errors.push({ name: 'QR', reason: error.message });
+            errors.push({ name: 'QR', code: error.code ?? 'error.unknown', params: error.params ?? {} });
         }
     }
 
     if (parsed.length === 0) {
         setStatus(
             errors.length > 0
-                ? `Không nhập được: ${errors.map((item) => `${item.name}: ${item.reason}`).join(' | ')}`
-                : 'Không tìm thấy account nào trong ảnh.',
+                ? [
+                      {
+                          key: 'import.failed',
+                          params: { details: errors.map((item) => `${item.name}: ${t(item.code, item.params)}`).join(' | ') },
+                      },
+                  ]
+                : [{ key: 'import.noneFound' }],
             'error',
         );
         return;
@@ -109,19 +134,16 @@ async function ingestRawValues(values, sourceErrors = []) {
 
     addToPending(parsed);
 
-    const notes = [`Đọc được ${parsed.length} account.`];
+    const parts = [{ key: 'import.readCount', params: { count: parsed.length } }];
     if (errors.length > 0) {
-        notes.push(`${errors.length} ảnh không đọc được: ${errors.map((item) => item.name).join(', ')}.`);
+        parts.push({
+            key: 'import.readErrors',
+            params: { count: errors.length, names: errors.map((item) => item.name).join(', ') },
+        });
     }
-    setStatus(notes.join(' '), errors.length > 0 ? 'warning' : 'success');
+    setStatus(parts, errors.length > 0 ? 'warning' : 'success');
 
-    const batchMessages = describeBatches();
-    if (batchMessages.length > 0) {
-        ui.batchNotice.textContent = batchMessages.join(' ');
-        show(ui.batchNotice, true);
-    } else {
-        show(ui.batchNotice, false);
-    }
+    paintBatchNotice(describeBatches());
 }
 
 function addToPending(newAccounts) {
@@ -146,9 +168,9 @@ function renderReview() {
     if (pending.length === 0) return;
 
     clear(ui.reviewList);
-    ui.reviewTitle.textContent = `Xem lại ${pending.length} account`;
+    ui.reviewTitle.textContent = t('import.review.title', { count: pending.length });
 
-    pending.forEach((row, index) => {
+    for (const row of pending) {
         const checkbox = el('input', { type: 'checkbox', checked: row.selected });
         checkbox.addEventListener('change', () => {
             row.selected = checkbox.checked;
@@ -159,7 +181,7 @@ function renderReview() {
             class: 'review-row__input',
             type: 'text',
             value: row.account.issuer,
-            placeholder: 'Dịch vụ',
+            placeholder: t('import.review.issuerPlaceholder'),
         });
         issuerInput.addEventListener('input', () => {
             row.account.issuer = issuerInput.value;
@@ -169,17 +191,19 @@ function renderReview() {
             class: 'review-row__input',
             type: 'text',
             value: row.account.account,
-            placeholder: 'Tài khoản',
+            placeholder: t('import.review.accountPlaceholder'),
         });
         accountInput.addEventListener('input', () => {
             row.account.account = accountInput.value;
         });
 
         const meta = el('div', { class: 'review-row__meta' }, [
-            row.duplicate ? el('span', { class: 'badge badge--dup', text: 'đã có' }) : null,
+            row.duplicate
+                ? el('span', { class: 'badge badge--dup', text: t('import.review.badgeDuplicate') })
+                : null,
             row.account.type === 'hotp' ? el('span', { class: 'badge badge--hotp', text: 'HOTP' }) : null,
             el('div', {
-                text: `${row.account.algorithm.replace('SHA-', 'SHA')} · ${row.account.digits} số · ${row.account.period}s`,
+                text: `${row.account.algorithm.replace('SHA-', 'SHA')} · ${row.account.digits} · ${row.account.period}s`,
             }),
         ]);
 
@@ -190,7 +214,7 @@ function renderReview() {
                 meta,
             ]),
         );
-    });
+    }
 
     updateSummary();
 }
@@ -199,24 +223,20 @@ function updateSummary() {
     const selected = pending.filter((row) => row.selected).length;
     const duplicates = pending.filter((row) => row.duplicate).length;
 
-    const parts = [`Đã chọn ${selected}/${pending.length}`];
-    if (duplicates > 0) parts.push(`${duplicates} account đã có sẵn nên bỏ chọn mặc định`);
+    const parts = [t('import.review.summary', { selected, total: pending.length })];
+    if (duplicates > 0) parts.push(t('import.review.summaryDuplicates', { count: duplicates }));
 
     ui.reviewSummary.textContent = parts.join(' · ');
     ui.saveBtn.disabled = selected === 0;
 }
 
 $('#selectAllBtn').addEventListener('click', () => {
-    pending.forEach((row) => {
-        row.selected = true;
-    });
+    for (const row of pending) row.selected = true;
     renderReview();
 });
 
 $('#selectNoneBtn').addEventListener('click', () => {
-    pending.forEach((row) => {
-        row.selected = false;
-    });
+    for (const row of pending) row.selected = false;
     renderReview();
 });
 
@@ -225,7 +245,7 @@ $('#cancelBtn').addEventListener('click', () => {
     batches.clear();
     show(ui.batchNotice, false);
     renderReview();
-    setStatus('');
+    setStatus(null);
 });
 
 ui.saveBtn.addEventListener('click', async () => {
@@ -233,19 +253,23 @@ ui.saveBtn.addEventListener('click', async () => {
     if (chosen.length === 0) return;
 
     ui.saveBtn.disabled = true;
-    ui.saveBtn.textContent = 'Đang lưu...';
+    ui.saveBtn.textContent = t('import.review.saving');
 
     try {
         const result = await vault.addAccounts(chosen);
 
-        const notes = [`Đã lưu ${result.added} account vào vault mã hoá.`];
-        if (result.skipped > 0) notes.push(`${result.skipped} account đã có sẵn nên bỏ qua.`);
+        const parts = [{ key: 'import.saved', params: { count: result.added } }];
+        if (result.skipped > 0) parts.push({ key: 'import.savedSkipped', params: { count: result.skipped } });
         if (result.failed.length > 0) {
-            notes.push(`${result.failed.length} account lỗi: ${result.failed[0].reason}`);
+            const [first] = result.failed;
+            parts.push({
+                key: 'import.savedFailed',
+                params: { count: result.failed.length, reason: t(first.code, first.params) },
+            });
         }
 
-        toast(notes[0], 'success');
-        setStatus(notes.join(' '), result.failed.length > 0 ? 'warning' : 'success');
+        toast(t('import.saved', { count: result.added }), 'success');
+        setStatus(parts, result.failed.length > 0 ? 'warning' : 'success');
 
         pending = [];
         batches.clear();
@@ -253,10 +277,10 @@ ui.saveBtn.addEventListener('click', async () => {
         await refreshExistingKeys();
         renderReview();
     } catch (error) {
-        setStatus(error.message, 'error');
+        setStatus([describeError(error)], 'error');
     } finally {
         ui.saveBtn.disabled = false;
-        ui.saveBtn.textContent = 'Lưu vào vault';
+        ui.saveBtn.textContent = t('import.review.save');
     }
 });
 
@@ -265,11 +289,11 @@ ui.saveBtn.addEventListener('click', async () => {
 async function handleFiles(fileList) {
     const files = Array.from(fileList).filter((file) => file.type.startsWith('image/'));
     if (files.length === 0) {
-        setStatus('Hãy chọn file ảnh chứa mã QR.', 'error');
+        setStatus([{ key: 'import.needImage' }], 'error');
         return;
     }
 
-    setStatus(`Đang đọc ${files.length} ảnh...`);
+    setStatus([{ key: 'import.reading', params: { count: files.length } }]);
     const { values, errors } = await readQrFromFiles(files);
     await ingestRawValues(values, errors);
 }
@@ -312,16 +336,16 @@ document.addEventListener('paste', async (event) => {
 
     if (imageItem) {
         event.preventDefault();
-        setStatus('Đang đọc ảnh vừa dán...');
+        setStatus([{ key: 'import.readingPasted' }]);
         try {
             const values = await readQrFromBlob(imageItem.getAsFile());
             if (values.length === 0) {
-                setStatus('Không tìm thấy mã QR trong ảnh vừa dán.', 'error');
+                setStatus([{ key: 'import.noneInPasted' }], 'error');
                 return;
             }
             await ingestRawValues(values);
         } catch (error) {
-            setStatus(error.message, 'error');
+            setStatus([describeError(error)], 'error');
         }
         return;
     }
@@ -350,18 +374,19 @@ $('#manualForm').addEventListener('submit', async (event) => {
     };
 
     if (!account.issuer && !account.account) {
-        setStatus('Hãy điền ít nhất tên dịch vụ hoặc tên tài khoản.', 'error');
+        setStatus([{ key: 'import.manual.needName' }], 'error');
         return;
     }
 
     try {
         await vault.addAccount(account);
-        toast(`Đã thêm ${displayLabel(account)}.`, 'success');
+        toast(t('import.manual.added', { label: displayLabel(account, t('common.unknownAccount')) }), 'success');
         event.target.reset();
         $('#mPeriod').value = '30';
+        setStatus(null);
         await refreshExistingKeys();
     } catch (error) {
-        setStatus(error.message, 'error');
+        setStatus([describeError(error)], 'error');
     }
 });
 
@@ -373,6 +398,16 @@ async function refreshExistingKeys() {
 }
 
 async function boot() {
+    await initI18n();
+    $('#langSlot').append(buildLanguageSwitcher());
+
+    onLanguageChange(() => {
+        paintStatus();
+        paintBatchNotice(describeBatches());
+        if (pending.length > 0) renderReview();
+        else ui.reviewTitle.textContent = t('import.review.titleIdle');
+    });
+
     const state = await vault.getState();
 
     if (state !== vault.VaultState.UNLOCKED) {

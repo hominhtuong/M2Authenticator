@@ -35,6 +35,7 @@ import {
     sessionSet,
 } from './storage.js';
 import { normalizeBase32, isValidBase32 } from './base32.js';
+import { AppError, fail } from './errors.js';
 import { normalizeAlgorithm, DEFAULT_ALGORITHM, DEFAULT_DIGITS, DEFAULT_PERIOD } from './totp.js';
 import { dedupeKey } from './otpauth.js';
 
@@ -47,6 +48,7 @@ export const VaultState = {
 };
 
 export const DEFAULT_SETTINGS = {
+    language: 'en',
     autoLockMinutes: 5,
     clipboardClearSeconds: 20,
     hideCodes: false,
@@ -56,14 +58,13 @@ export const DEFAULT_SETTINGS = {
 /** Chống dò mật khẩu: chờ tăng dần, chặn cứng từ lần thứ 5. */
 const BACKOFF_STEPS_MS = [0, 0, 1_000, 3_000, 10_000, 30_000, 60_000, 300_000];
 
-class VaultLockedError extends Error {
-    constructor(message = 'Vault đang khoá.') {
-        super(message);
+/** Vault khoá giữa chừng là chuyện bình thường, UI cần phân biệt nó với lỗi thật. */
+export class VaultLockedError extends AppError {
+    constructor(code = 'error.vaultLocked') {
+        super(code);
         this.name = 'VaultLockedError';
     }
 }
-
-export { VaultLockedError };
 
 // ---------------------------------------------------------------- trạng thái
 
@@ -200,17 +201,17 @@ async function assertNotLockedOut() {
     const status = await getLockoutStatus();
     if (status.lockedOut) {
         const seconds = Math.ceil(status.remainingMs / 1000);
-        throw new Error(`Nhập sai quá nhiều lần. Thử lại sau ${seconds} giây.`);
+        fail('error.tooManyAttempts', { seconds });
     }
 }
 
 // ------------------------------------------------------------ khởi tạo
 
 export async function initialize(password) {
-    if (await isInitialized()) throw new Error('Vault đã được tạo rồi.');
+    if (await isInitialized()) fail('error.vaultAlreadyExists');
 
     const strength = assessPassword(password);
-    if (!strength.ok) throw new Error(strength.issues.join(' '));
+    if (!strength.ok) fail(strength.issues[0].code, strength.issues[0].params);
 
     const salt = randomBytes(SALT_BYTES);
     const kek = await deriveKeyFromPassword(password, salt, KDF_ITERATIONS);
@@ -246,7 +247,7 @@ export async function unlockWithPassword(password) {
     await assertNotLockedOut();
 
     const record = await readVaultRecord();
-    if (!record) throw new Error('Chưa có vault nào. Hãy tạo master password trước.');
+    if (!record) fail('error.vaultNoAccounts');
 
     const salt = fromBase64(record.kdf.salt);
     const kek = await deriveKeyFromPassword(password, salt, record.kdf.iterations);
@@ -256,7 +257,7 @@ export async function unlockWithPassword(password) {
         dekBytes = await aesGcmDecrypt(kek, record.passwordWrap, aadFor('dek-wrap', record.schema));
     } catch {
         const { failedAttempts } = await recordFailure();
-        throw new Error(`Master password không đúng. Đã sai ${failedAttempts} lần.`);
+        fail('error.wrongPassword', { attempts: failedAttempts });
     }
 
     await clearFailures();
@@ -272,7 +273,7 @@ export async function unlockWithPrf(prfOutputBytes) {
     await assertNotLockedOut();
 
     const record = await readVaultRecord();
-    if (!record?.biometric) throw new Error('Chưa đăng ký mở khoá bằng vân tay.');
+    if (!record?.biometric) fail('error.biometricNotEnrolled');
 
     const hkdfSalt = fromBase64(record.biometric.hkdfSalt);
     const bek = await deriveKeyFromPrf(prfOutputBytes, hkdfSalt);
@@ -282,7 +283,7 @@ export async function unlockWithPrf(prfOutputBytes) {
         dekBytes = await aesGcmDecrypt(bek, record.biometric.wrap, aadFor('dek-wrap-bio', record.schema));
     } catch {
         await recordFailure();
-        throw new Error('Không mở khoá được bằng vân tay. Dùng master password.');
+        fail('error.biometricUnlockFailed');
     }
 
     await clearFailures();
@@ -294,10 +295,10 @@ export async function unlockWithPrf(prfOutputBytes) {
 
 export async function changePassword(currentPassword, newPassword) {
     const record = await readVaultRecord();
-    if (!record) throw new Error('Chưa có vault.');
+    if (!record) fail('error.vaultNotInitialized');
 
     const strength = assessPassword(newPassword);
-    if (!strength.ok) throw new Error(strength.issues.join(' '));
+    if (!strength.ok) fail(strength.issues[0].code, strength.issues[0].params);
 
     const oldKek = await deriveKeyFromPassword(currentPassword, fromBase64(record.kdf.salt), record.kdf.iterations);
 
@@ -306,7 +307,7 @@ export async function changePassword(currentPassword, newPassword) {
         dekBytes = await aesGcmDecrypt(oldKek, record.passwordWrap, aadFor('dek-wrap', record.schema));
     } catch {
         await recordFailure();
-        throw new Error('Master password hiện tại không đúng.');
+        fail('error.wrongCurrentPassword');
     }
 
     // Salt mới cho mật khẩu mới. Vault data giữ nguyên vì DEK không đổi.
@@ -327,10 +328,10 @@ export async function changePassword(currentPassword, newPassword) {
  */
 export async function enrollBiometric({ credentialId, prfSalt, prfOutputBytes }) {
     const record = await readVaultRecord();
-    if (!record) throw new Error('Chưa có vault.');
+    if (!record) fail('error.vaultNotInitialized');
 
     const dekBytes = await readSessionDek();
-    if (!dekBytes) throw new VaultLockedError('Hãy mở khoá vault trước khi đăng ký vân tay.');
+    if (!dekBytes) throw new VaultLockedError('error.vaultNeedUnlockForBiometric');
 
     const hkdfSalt = randomBytes(SALT_BYTES);
     const bek = await deriveKeyFromPrf(prfOutputBytes, hkdfSalt);
@@ -365,7 +366,7 @@ export async function destroyVault() {
 
 async function readPayload() {
     const record = await readVaultRecord();
-    if (!record) throw new Error('Chưa có vault.');
+    if (!record) fail('error.vaultNotInitialized');
 
     const dek = await requireDek();
     const plaintext = await aesGcmDecrypt(dek, record.data, aadFor('vault-data', record.schema));
@@ -393,13 +394,13 @@ function sanitizeAccount(input) {
     const type = input.type === 'hotp' ? 'hotp' : 'totp';
     const secret = normalizeBase32(input.secret);
 
-    if (!isValidBase32(secret)) throw new Error('Secret không phải Base32 hợp lệ.');
+    if (!isValidBase32(secret)) fail('error.otpSecretNotBase32');
 
     const digits = Number(input.digits) || DEFAULT_DIGITS;
-    if (digits < 6 || digits > 10) throw new Error('Số chữ số phải từ 6 đến 10.');
+    if (digits < 6 || digits > 10) fail('error.digitsRange');
 
     const period = Number(input.period) || DEFAULT_PERIOD;
-    if (period <= 0 || period > 300) throw new Error('Chu kỳ phải từ 1 đến 300 giây.');
+    if (period <= 0 || period > 300) fail('error.periodRange');
 
     return {
         type,
@@ -433,7 +434,7 @@ export async function addAccounts(inputs) {
         try {
             clean = sanitizeAccount(input);
         } catch (error) {
-            failed.push({ input, reason: error.message });
+            failed.push({ input, code: error.code ?? 'error.unknown', params: error.params ?? {} });
             continue;
         }
 
@@ -466,8 +467,11 @@ export async function addAccounts(inputs) {
 
 export async function addAccount(input) {
     const result = await addAccounts([input]);
-    if (result.failed.length > 0) throw new Error(result.failed[0].reason);
-    if (result.added === 0) throw new Error('Account này đã có trong danh sách.');
+    if (result.failed.length > 0) {
+        const [first] = result.failed;
+        fail(first.code, first.params);
+    }
+    if (result.added === 0) fail('error.accountDuplicate');
     return result;
 }
 
@@ -475,7 +479,7 @@ export async function updateAccount(id, changes) {
     const { record, payload } = await readPayload();
     const accounts = payload.accounts ?? [];
     const index = accounts.findIndex((item) => item.id === id);
-    if (index < 0) throw new Error('Không tìm thấy account.');
+    if (index < 0) fail('error.accountNotFound');
 
     const merged = sanitizeAccount({ ...accounts[index], ...changes });
     accounts[index] = { ...accounts[index], ...merged, updatedAt: Date.now() };
@@ -510,7 +514,7 @@ export async function incrementHotpCounter(id) {
     const { record, payload } = await readPayload();
     const accounts = payload.accounts ?? [];
     const item = accounts.find((entry) => entry.id === id);
-    if (!item || item.type !== 'hotp') throw new Error('Không phải account HOTP.');
+    if (!item || item.type !== 'hotp') fail('error.notHotp');
 
     item.counter = (item.counter ?? 0) + 1;
     item.updatedAt = Date.now();
@@ -532,47 +536,4 @@ export async function saveSettings(changes) {
     await localSet({ [LOCAL_KEYS.SETTINGS]: next });
     await touchActivity();
     return next;
-}
-
-// ------------------------------------- di trú dữ liệu plaintext bản 1.x
-
-/** Bản cũ lưu secret trần trong storage. Kiểm tra xem còn sót không. */
-export async function hasLegacyPlaintextData() {
-    const stored = await localGet(LOCAL_KEYS.LEGACY_ACCOUNTS);
-    const legacy = stored[LOCAL_KEYS.LEGACY_ACCOUNTS];
-    return Array.isArray(legacy) && legacy.length > 0;
-}
-
-export async function countLegacyAccounts() {
-    const stored = await localGet(LOCAL_KEYS.LEGACY_ACCOUNTS);
-    const legacy = stored[LOCAL_KEYS.LEGACY_ACCOUNTS];
-    return Array.isArray(legacy) ? legacy.length : 0;
-}
-
-/**
- * Nhập dữ liệu plaintext của bản cũ vào vault đã mở khoá, rồi xoá bản plaintext.
- * Chỉ xoá sau khi ghi mã hoá thành công.
- */
-export async function migrateLegacyPlaintextData() {
-    const stored = await localGet(LOCAL_KEYS.LEGACY_ACCOUNTS);
-    const legacy = stored[LOCAL_KEYS.LEGACY_ACCOUNTS];
-    if (!Array.isArray(legacy) || legacy.length === 0) return { added: 0, skipped: 0, failed: [] };
-
-    const inputs = legacy.map((item) => {
-        const label = String(item.label ?? '').trim();
-        const [issuer, ...rest] = label.split(' - ');
-        return {
-            type: 'totp',
-            issuer: rest.length > 0 ? issuer : '',
-            account: rest.length > 0 ? rest.join(' - ') : label,
-            secret: item.secret,
-            digits: item.digits,
-            period: item.period,
-            algorithm: item.algorithm,
-        };
-    });
-
-    const result = await addAccounts(inputs);
-    await localRemove([LOCAL_KEYS.LEGACY_ACCOUNTS, LOCAL_KEYS.LEGACY_MANUAL_TOGGLE]);
-    return result;
 }

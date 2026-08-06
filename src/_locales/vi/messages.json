@@ -1,0 +1,10 @@
+{
+  "appName": {
+    "message": "M2 Authenticator",
+    "description": "Tên extension hiển thị trong Chrome và trên Chrome Web Store"
+  },
+  "appDescription": {
+    "message": "Mã 2FA (TOTP/HOTP) offline. Vault mã hoá AES-256-GCM, mở khoá bằng master password hoặc vân tay.",
+    "description": "Mô tả ngắn hiển thị trên trang Chrome Web Store"
+  }
+}

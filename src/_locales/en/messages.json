@@ -1,0 +1,10 @@
+{
+  "appName": {
+    "message": "M2 Authenticator",
+    "description": "Extension name shown in Chrome and on the Chrome Web Store"
+  },
+  "appDescription": {
+    "message": "Offline 2FA codes (TOTP/HOTP). AES-256-GCM encrypted vault, unlocked by master password or fingerprint.",
+    "description": "Short description shown on the Chrome Web Store listing"
+  }
+}

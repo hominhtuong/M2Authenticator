@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="vi">
+<html lang="en">
 <head>
     <meta charset="utf-8" />
     <title>M2 Authenticator</title>
@@ -14,55 +14,56 @@
         <img src="../assets/icons/icon48.png" alt="" width="40" height="40" />
         <h1>M2 Authenticator</h1>
     </div>
-    <p class="screen__lead">Tạo master password để bắt đầu. Toàn bộ mã 2FA sẽ được mã hoá bằng khoá dẫn xuất từ mật khẩu này.</p>
-    <button id="goSetup" class="btn btn--primary btn--block" type="button">Thiết lập ngay</button>
+    <p class="screen__lead" data-i18n="popup.setup.lead"></p>
+    <button id="goSetup" class="btn btn--primary btn--block" type="button" data-i18n="popup.setup.action"></button>
+    <div id="setupLang" class="screen__lang"></div>
 </section>
 
 <!-- Vault đang khoá -->
 <section id="screenLocked" class="screen screen--center" hidden>
     <div class="brand">
         <img src="../assets/icons/icon48.png" alt="" width="40" height="40" />
-        <h1>Đang khoá</h1>
+        <h1 data-i18n="popup.locked.title"></h1>
     </div>
 
     <div id="lockedAlert" class="alert alert--error" hidden></div>
 
     <form id="unlockForm" class="unlock-form" autocomplete="off">
-        <label class="visually-hidden" for="masterPassword">Master password</label>
-        <input id="masterPassword" class="input" type="password" placeholder="Master password"
+        <label class="visually-hidden" for="masterPassword" data-i18n="popup.locked.passwordPlaceholder"></label>
+        <input id="masterPassword" class="input" type="password" data-i18n-placeholder="popup.locked.passwordPlaceholder"
                autocomplete="current-password" required />
-        <button id="unlockBtn" class="btn btn--primary btn--block" type="submit">Mở khoá</button>
+        <button id="unlockBtn" class="btn btn--primary btn--block" type="submit" data-i18n="popup.locked.unlock"></button>
     </form>
 
-    <button id="biometricBtn" class="btn btn--block" type="button" hidden>
-        Mở khoá bằng vân tay
-    </button>
+    <button id="biometricBtn" class="btn btn--block" type="button" data-i18n="popup.locked.biometric" hidden></button>
+
+    <div id="lockedLang" class="screen__lang"></div>
 </section>
 
 <!-- Vault đã mở -->
 <section id="screenVault" class="screen" hidden>
     <header class="topbar">
-        <input id="search" class="input search" type="search" placeholder="Tìm account..." autocomplete="off" />
-        <button id="addBtn" class="btn btn--icon" type="button" title="Thêm account">
+        <input id="search" class="input search" type="search" data-i18n-placeholder="popup.search" autocomplete="off" />
+        <button id="addBtn" class="btn btn--icon" type="button" data-i18n-title="popup.action.add" data-i18n-label="popup.action.add">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                  stroke-linecap="round" aria-hidden="true">
                 <path d="M12 5v14M5 12h14" />
             </svg>
         </button>
-        <button id="sortBtn" class="btn btn--icon" type="button" title="Sắp xếp">
+        <button id="sortBtn" class="btn btn--icon" type="button" data-i18n-title="popup.action.sort" data-i18n-label="popup.action.sort">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                  stroke-linecap="round" aria-hidden="true">
                 <path d="M4 7h16M4 12h10M4 17h6" />
             </svg>
         </button>
-        <button id="settingsBtn" class="btn btn--icon" type="button" title="Cài đặt">
+        <button id="settingsBtn" class="btn btn--icon" type="button" data-i18n-title="popup.action.settings" data-i18n-label="popup.action.settings">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                  aria-hidden="true">
                 <circle cx="12" cy="12" r="3" />
                 <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
             </svg>
         </button>
-        <button id="lockBtn" class="btn btn--icon" type="button" title="Khoá lại">
+        <button id="lockBtn" class="btn btn--icon" type="button" data-i18n-title="popup.action.lock" data-i18n-label="popup.action.lock">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                  aria-hidden="true">
                 <rect x="4" y="11" width="16" height="10" rx="2" />
@@ -71,15 +72,17 @@
         </button>
     </header>
 
-    <div id="legacyBanner" class="alert alert--warning" hidden></div>
-
     <div id="list" class="list" role="list"></div>
 
     <div id="emptyState" class="empty" hidden>
-        <p class="empty__title">Chưa có account nào</p>
-        <p class="empty__text">Nhập một lần cả danh sách bằng QR "Chuyển tài khoản" của Google Authenticator.</p>
-        <button id="emptyAddBtn" class="btn btn--primary" type="button">Thêm account</button>
+        <p class="empty__title" data-i18n="popup.empty.title"></p>
+        <p class="empty__text" data-i18n="popup.empty.text"></p>
+        <button id="emptyAddBtn" class="btn btn--primary" type="button" data-i18n="popup.empty.action"></button>
     </div>
+
+    <footer class="popup-footer">
+        <div id="vaultLang"></div>
+    </footer>
 </section>
 
 <script type="module" src="popup.js"></script>

@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="M2 Authenticator">
+  <title>M2 Authenticator</title>
+
+  <defs>
+    <!-- Hai tông vàng / hồng kế thừa từ logo cũ, chia mềm ở giữa mặt -->
+    <linearGradient id="m2-split" gradientUnits="userSpaceOnUse" x1="26" y1="0" x2="230" y2="0">
+      <stop offset="0" stop-color="#ffc94a"/>
+      <stop offset="0.46" stop-color="#f5a623"/>
+      <stop offset="0.54" stop-color="#ff5470"/>
+      <stop offset="1" stop-color="#ff86a0"/>
+    </linearGradient>
+
+    <!-- Vòng đếm ngược TOTP -->
+    <linearGradient id="m2-ring" gradientUnits="userSpaceOnUse" x1="24" y1="34" x2="232" y2="222">
+      <stop offset="0" stop-color="#f5b62a"/>
+      <stop offset="0.55" stop-color="#ff5470"/>
+      <stop offset="1" stop-color="#5b8bff"/>
+    </linearGradient>
+
+    <radialGradient id="m2-disc" cx="0.34" cy="0.26" r="0.9">
+      <stop offset="0" stop-color="#1c2231"/>
+      <stop offset="1" stop-color="#0d0f14"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Đĩa nền -->
+  <circle cx="128" cy="128" r="124" fill="url(#m2-disc)"/>
+
+  <!-- Rãnh vòng + cung đếm ngược 30 giây -->
+  <circle cx="128" cy="128" r="110" fill="none" stroke="#232936" stroke-width="9"/>
+  <circle cx="128" cy="128" r="110" fill="none" stroke="url(#m2-ring)" stroke-width="9"
+          stroke-linecap="round" stroke-dasharray="486 205" transform="rotate(-90 128 128)"/>
+
+  <!-- Mặt khỉ -->
+  <g transform="translate(128 128) scale(0.84) translate(-128 -128)">
+
+    <!-- Tai -->
+    <circle cx="52" cy="118" r="30" fill="url(#m2-split)"/>
+    <circle cx="204" cy="118" r="30" fill="url(#m2-split)"/>
+    <circle cx="45" cy="118" r="16" fill="#fff3e2"/>
+    <circle cx="211" cy="118" r="16" fill="#fff3e2"/>
+
+    <!-- Đầu -->
+    <path fill="url(#m2-split)"
+          d="M128 46 C168 46 200 74 200 116 C200 166 172 204 128 204
+             C84 204 56 166 56 116 C56 74 88 46 128 46 Z"/>
+
+    <!-- Vùng mặt sáng -->
+    <path fill="#fff6ea"
+          d="M128 84 C122 76 108 76 98 86 C88 96 82 112 82 130
+             C82 168 100 196 128 196 C156 196 174 168 174 130
+             C174 112 168 96 158 86 C148 76 134 76 128 84 Z"/>
+
+    <!-- Chân mày -->
+    <path fill="#14161d" d="M86 103 Q104 88 125 104 L121 116 Q104 104 89 113 Z"/>
+    <path fill="#14161d" d="M170 103 Q152 88 131 104 L135 116 Q152 104 167 113 Z"/>
+
+    <!-- Mắt -->
+    <ellipse cx="106" cy="126" rx="14" ry="12" fill="#14161d" transform="rotate(-10 106 126)"/>
+    <ellipse cx="150" cy="126" rx="14" ry="12" fill="#14161d" transform="rotate(10 150 126)"/>
+    <circle cx="108" cy="127" r="5.5" fill="#5b8bff"/>
+    <circle cx="148" cy="127" r="5.5" fill="#5b8bff"/>
+    <circle cx="110.5" cy="124" r="2.2" fill="#fff6ea"/>
+    <circle cx="150.5" cy="124" r="2.2" fill="#fff6ea"/>
+
+    <!-- Mũi dựng theo hình lỗ khoá -->
+    <circle cx="128" cy="143" r="7" fill="#14161d"/>
+    <path fill="#14161d" d="M121.7 146 L116 163 Q128 167.5 140 163 L134.3 146 Z"/>
+
+    <!-- Miệng -->
+    <path fill="none" stroke="#14161d" stroke-width="7" stroke-linecap="round"
+          d="M102 173 Q128 194 154 173"/>
+  </g>
+</svg>

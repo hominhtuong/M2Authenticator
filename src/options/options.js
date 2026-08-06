@@ -1,11 +1,8 @@
 import { $, $$, confirmDialog, show, toast } from '../lib/dom.js';
 import { assessPassword } from '../lib/crypto.js';
+import { buildLanguageSwitcher, describeError, initI18n, onLanguageChange, t } from '../lib/i18n.js';
 import * as vault from '../lib/vault.js';
-import {
-    describeWebAuthnError,
-    isPlatformAuthenticatorAvailable,
-    registerBiometric,
-} from '../lib/webauthn.js';
+import { isPlatformAuthenticatorAvailable, registerBiometric, webAuthnErrorCode } from '../lib/webauthn.js';
 
 const ui = {
     welcomeNotice: $('#welcomeNotice'),
@@ -40,6 +37,11 @@ function setAlert(node, message, variant = 'error') {
     show(node, true);
 }
 
+function showBiometricError(error) {
+    const code = error?.name ? webAuthnErrorCode(error) : null;
+    setAlert(ui.biometricAlert, code ? t(code) : describeError(error));
+}
+
 // ------------------------------------------------------------- cài đặt
 
 async function loadSettings() {
@@ -51,17 +53,17 @@ async function loadSettings() {
 
 ui.autoLock.addEventListener('change', async () => {
     await vault.saveSettings({ autoLockMinutes: Number(ui.autoLock.value) });
-    toast('Đã lưu mốc tự khoá.', 'success');
+    toast(t('options.lock.saved'), 'success');
 });
 
 ui.clipboardClear.addEventListener('change', async () => {
     await vault.saveSettings({ clipboardClearSeconds: Number(ui.clipboardClear.value) });
-    toast('Đã lưu cài đặt clipboard.', 'success');
+    toast(t('options.clipboard.saved'), 'success');
 });
 
 ui.hideCodes.addEventListener('change', async () => {
     await vault.saveSettings({ hideCodes: ui.hideCodes.checked });
-    toast('Đã lưu.', 'success');
+    toast(t('options.saved'), 'success');
 });
 
 // -------------------------------------------------------------- vân tay
@@ -72,16 +74,10 @@ async function refreshBiometricSection() {
 
     ui.biometricStatus.dataset.on = String(enrolled);
 
-    if (enrolled) {
-        ui.biometricStatus.textContent = 'Đang bật. Bạn có thể mở vault bằng sinh trắc thay cho master password.';
-    } else if (!available) {
-        ui.biometricStatus.textContent =
-            'Thiết bị này không có cảm biến sinh trắc khả dụng cho trình duyệt. Vẫn dùng master password bình thường.';
-    } else if (!unlocked) {
-        ui.biometricStatus.textContent = 'Hãy mở khoá vault trước, rồi mới bật được mở khoá bằng vân tay.';
-    } else {
-        ui.biometricStatus.textContent = 'Chưa bật.';
-    }
+    if (enrolled) ui.biometricStatus.textContent = t('options.biometric.on');
+    else if (!available) ui.biometricStatus.textContent = t('options.biometric.unavailable');
+    else if (!unlocked) ui.biometricStatus.textContent = t('options.biometric.needUnlock');
+    else ui.biometricStatus.textContent = t('options.biometric.off');
 
     show(ui.enrollBtn, !enrolled && available && unlocked);
     show(ui.removeBtn, enrolled);
@@ -89,7 +85,7 @@ async function refreshBiometricSection() {
 
 ui.enrollBtn.addEventListener('click', async () => {
     ui.enrollBtn.disabled = true;
-    ui.enrollBtn.textContent = 'Đang chờ xác thực...';
+    ui.enrollBtn.textContent = t('options.biometric.enabling');
     setAlert(ui.biometricAlert, '');
 
     let registration;
@@ -100,29 +96,30 @@ ui.enrollBtn.addEventListener('click', async () => {
             prfSalt: registration.prfSalt,
             prfOutputBytes: registration.prfOutput,
         });
-        setAlert(ui.biometricAlert, 'Đã bật mở khoá bằng vân tay.', 'success');
-        toast('Đã bật mở khoá bằng vân tay.', 'success');
+        setAlert(ui.biometricAlert, t('options.biometric.enabled'), 'success');
+        toast(t('options.biometric.enabled'), 'success');
     } catch (error) {
-        setAlert(ui.biometricAlert, error.name ? describeWebAuthnError(error) : error.message);
+        showBiometricError(error);
     } finally {
         if (registration?.prfOutput) registration.prfOutput.fill(0);
         ui.enrollBtn.disabled = false;
-        ui.enrollBtn.textContent = 'Bật mở khoá bằng vân tay';
+        ui.enrollBtn.textContent = t('options.biometric.enable');
         await refreshBiometricSection();
     }
 });
 
 ui.removeBtn.addEventListener('click', async () => {
     const confirmed = await confirmDialog({
-        title: 'Gỡ mở khoá bằng vân tay?',
-        message: 'Sau khi gỡ, bạn chỉ mở được vault bằng master password. Hãy chắc chắn bạn còn nhớ nó.',
-        confirmLabel: 'Gỡ',
+        title: t('options.biometric.removeTitle'),
+        message: t('options.biometric.removeMessage'),
+        confirmLabel: t('common.delete'),
+        cancelLabel: t('common.cancel'),
         danger: true,
     });
     if (!confirmed) return;
 
     await vault.removeBiometric();
-    toast('Đã gỡ vân tay.', 'success');
+    toast(t('options.biometric.removed'), 'success');
     await refreshBiometricSection();
 });
 
@@ -137,11 +134,13 @@ function renderStrength() {
         else delete bar.dataset.on;
     });
 
-    ui.strengthLabel.textContent = ui.nextPassword.value
-        ? result.ok
-            ? `Độ mạnh: ${result.label}`
-            : result.issues[0]
-        : '';
+    if (!ui.nextPassword.value) {
+        ui.strengthLabel.textContent = '';
+    } else if (result.ok) {
+        ui.strengthLabel.textContent = t('password.strength', { label: t(result.labelKey) });
+    } else {
+        ui.strengthLabel.textContent = t(result.issues[0].code, result.issues[0].params);
+    }
 }
 
 ui.nextPassword.addEventListener('input', renderStrength);
@@ -151,24 +150,24 @@ ui.passwordForm.addEventListener('submit', async (event) => {
     setAlert(ui.passwordAlert, '');
 
     if (ui.nextPassword.value !== ui.nextPasswordConfirm.value) {
-        setAlert(ui.passwordAlert, 'Hai lần nhập mật khẩu mới không khớp.');
+        setAlert(ui.passwordAlert, t('options.password.mismatch'));
         return;
     }
 
     ui.changeBtn.disabled = true;
-    ui.changeBtn.textContent = 'Đang xử lý...';
+    ui.changeBtn.textContent = t('options.password.working');
 
     try {
         await vault.changePassword(ui.currentPassword.value, ui.nextPassword.value);
         ui.passwordForm.reset();
         renderStrength();
-        setAlert(ui.passwordAlert, 'Đã đổi master password.', 'success');
-        toast('Đã đổi master password.', 'success');
+        setAlert(ui.passwordAlert, t('options.password.changed'), 'success');
+        toast(t('options.password.changed'), 'success');
     } catch (error) {
-        setAlert(ui.passwordAlert, error.message);
+        setAlert(ui.passwordAlert, describeError(error));
     } finally {
         ui.changeBtn.disabled = false;
-        ui.changeBtn.textContent = 'Đổi mật khẩu';
+        ui.changeBtn.textContent = t('options.password.submit');
     }
 });
 
@@ -176,32 +175,40 @@ ui.passwordForm.addEventListener('submit', async (event) => {
 
 ui.destroyBtn.addEventListener('click', async () => {
     const first = await confirmDialog({
-        title: 'Xoá toàn bộ vault?',
-        message: 'Tất cả account 2FA sẽ mất vĩnh viễn. Không có bản sao lưu nào để khôi phục.',
-        confirmLabel: 'Tiếp tục',
+        title: t('options.destroy.confirm1Title'),
+        message: t('options.destroy.confirm1Message'),
+        confirmLabel: t('options.destroy.confirm1Action'),
+        cancelLabel: t('common.cancel'),
         danger: true,
     });
     if (!first) return;
 
     const second = await confirmDialog({
-        title: 'Chắc chắn chưa?',
-        message: 'Nếu bạn chưa tắt 2FA hoặc chưa lưu mã dự phòng ở các dịch vụ đang dùng, bạn sẽ bị khoá ngoài tài khoản của mình.',
-        confirmLabel: 'Xoá vĩnh viễn',
+        title: t('options.destroy.confirm2Title'),
+        message: t('options.destroy.confirm2Message'),
+        confirmLabel: t('options.destroy.confirm2Action'),
+        cancelLabel: t('common.cancel'),
         danger: true,
     });
     if (!second) return;
 
     await vault.destroyVault();
-    toast('Đã xoá vault.', 'success');
+    toast(t('options.destroy.done'), 'success');
     setTimeout(() => location.reload(), 800);
 });
 
 // ------------------------------------------------------------ khởi động
 
 async function boot() {
-    if (new URLSearchParams(location.search).has('welcome')) {
-        show(ui.welcomeNotice, true);
-    }
+    await initI18n();
+    $('#langSlot').append(buildLanguageSwitcher());
+
+    onLanguageChange(async () => {
+        await refreshBiometricSection();
+        if (ui.nextPassword.value) renderStrength();
+    });
+
+    if (new URLSearchParams(location.search).has('welcome')) show(ui.welcomeNotice, true);
 
     const state = await vault.getState();
     unlocked = state === vault.VaultState.UNLOCKED;
@@ -211,9 +218,7 @@ async function boot() {
     // Đổi mật khẩu chỉ cần bọc lại DEK bằng mật khẩu cũ, nên làm được cả khi vault đang khoá.
     // Chỉ chặn khi chưa có vault nào.
     const noVault = state === vault.VaultState.UNINITIALIZED;
-    ui.passwordForm.querySelectorAll('input, button').forEach((node) => {
-        node.disabled = noVault;
-    });
+    for (const node of ui.passwordForm.querySelectorAll('input, button')) node.disabled = noVault;
     ui.destroyBtn.disabled = noVault;
 
     await loadSettings();

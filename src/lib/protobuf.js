@@ -5,6 +5,8 @@
  * tầng trên tự diễn giải theo schema đã biết.
  */
 
+import { fail } from './errors.js';
+
 const WIRE_VARINT = 0;
 const WIRE_64BIT = 1;
 const WIRE_LENGTH = 2;
@@ -24,8 +26,8 @@ class Reader {
         let result = 0n;
         let shift = 0n;
         while (true) {
-            if (this.done) throw new Error('Protobuf hỏng: varint bị cắt cụt.');
-            if (shift > 63n) throw new Error('Protobuf hỏng: varint quá dài.');
+            if (this.done) fail('error.protobufTruncatedVarint');
+            if (shift > 63n) fail('error.protobufVarintTooLong');
             const byte = this.bytes[this.pos++];
             result |= BigInt(byte & 0x7f) << shift;
             if ((byte & 0x80) === 0) break;
@@ -36,7 +38,7 @@ class Reader {
 
     readBytes(length) {
         if (this.pos + length > this.bytes.length) {
-            throw new Error('Protobuf hỏng: trường length-delimited vượt quá dữ liệu.');
+            fail('error.protobufOverrun');
         }
         const slice = this.bytes.subarray(this.pos, this.pos + length);
         this.pos += length;
@@ -45,7 +47,7 @@ class Reader {
 
     skip(count) {
         if (this.pos + count > this.bytes.length) {
-            throw new Error('Protobuf hỏng: dữ liệu bị cắt cụt.');
+            fail('error.protobufTruncated');
         }
         this.pos += count;
     }
@@ -70,7 +72,7 @@ export function decodeMessage(bytes) {
         const fieldNumber = Number(tag >> 3n);
         const wireType = Number(tag & 7n);
 
-        if (fieldNumber === 0) throw new Error('Protobuf hỏng: field number 0 không hợp lệ.');
+        if (fieldNumber === 0) fail('error.protobufBadFieldNumber');
 
         switch (wireType) {
             case WIRE_VARINT:
@@ -88,7 +90,7 @@ export function decodeMessage(bytes) {
                 reader.skip(4);
                 break;
             default:
-                throw new Error(`Protobuf hỏng: wire type ${wireType} không hỗ trợ.`);
+                fail('error.protobufBadWireType', { wireType });
         }
     }
 
