@@ -1,0 +1,35 @@
+{
+  "name": "m2-authenticator",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Chrome extension sinh mã 2FA (TOTP/HOTP) offline, vault mã hoá AES-256-GCM",
+  "license": "MIT",
+  "author": "Minh Tường",
+  "homepage": "https://github.com/hominhtuong/M2Authenticator",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hominhtuong/M2Authenticator.git"
+  },
+  "bugs": {
+    "url": "https://github.com/hominhtuong/M2Authenticator/issues"
+  },
+  "keywords": [
+    "chrome-extension",
+    "2fa",
+    "totp",
+    "hotp",
+    "authenticator",
+    "offline",
+    "webauthn"
+  ],
+  "type": "module",
+  "scripts": {
+    "test": "node --test \"tests/*.test.js\"",
+    "build": "node scripts/build.mjs",
+    "release:github": "node scripts/release.mjs",
+    "publish:store": "node scripts/publish.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

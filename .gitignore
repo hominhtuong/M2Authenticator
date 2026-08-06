@@ -1,0 +1,15 @@
+.DS_Store
+node_modules/
+dist/
+*.zip
+*.pem
+*.crx
+
+# Bí mật phát hành. Không bao giờ commit.
+.env
+.env.*
+!.env.example
+
+# JetBrains
+.idea/
+*.iml

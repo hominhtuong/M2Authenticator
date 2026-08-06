@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <title>M2 Authenticator - Mở khoá</title>
+    <link rel="stylesheet" href="../assets/styles/app.css" />
+    <link rel="stylesheet" href="unlock.css" />
+</head>
+<body class="unlock-page">
+<main class="card">
+    <div class="brand">
+        <img src="../assets/icons/icon48.png" alt="" width="40" height="40" />
+        <h1 id="title">Mở khoá</h1>
+    </div>
+
+    <p id="lead" class="lead"></p>
+
+    <div id="alert" class="alert" hidden></div>
+
+    <!-- Tạo master password -->
+    <form id="setupForm" hidden autocomplete="off">
+        <label class="field">
+            <span class="field__label">Master password</span>
+            <input id="newPassword" class="input" type="password" autocomplete="new-password" required />
+            <span class="field__hint">
+                Cách dễ nhớ mà vẫn mạnh: một câu dài từ 16 ký tự trở lên, ví dụ "con mèo trèo cây cau 2026".
+                Không cần ký tự đặc biệt nếu câu đủ dài.
+            </span>
+            <div class="strength" aria-hidden="true">
+                <span class="strength__bar"></span>
+                <span class="strength__bar"></span>
+                <span class="strength__bar"></span>
+                <span class="strength__bar"></span>
+                <span class="strength__bar"></span>
+            </div>
+            <div id="strengthLabel" class="strength__label"></div>
+        </label>
+
+        <label class="field">
+            <span class="field__label">Nhập lại master password</span>
+            <input id="confirmPassword" class="input" type="password" autocomplete="new-password" required />
+        </label>
+
+        <div class="alert alert--warning">
+            Mật khẩu này không được lưu ở bất cứ đâu và không có cách khôi phục. Quên là mất toàn bộ mã 2FA đã lưu.
+        </div>
+
+        <label class="checkline">
+            <input id="ackLoss" type="checkbox" />
+            <span>Tôi hiểu và đã ghi nhớ hoặc lưu mật khẩu ở nơi an toàn.</span>
+        </label>
+
+        <button id="createBtn" class="btn btn--primary btn--block" type="submit">Tạo vault</button>
+    </form>
+
+    <!-- Mở khoá -->
+    <form id="unlockForm" hidden autocomplete="off">
+        <label class="field">
+            <span class="field__label">Master password</span>
+            <input id="password" class="input" type="password" autocomplete="current-password" required />
+        </label>
+        <button id="unlockBtn" class="btn btn--primary btn--block" type="submit">Mở khoá</button>
+    </form>
+
+    <button id="biometricBtn" class="btn btn--block" type="button" hidden>Mở khoá bằng vân tay</button>
+
+    <p id="footnote" class="footnote"></p>
+</main>
+
+<script type="module" src="unlock.js"></script>
+</body>
+</html>

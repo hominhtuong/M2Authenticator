@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <title>M2 Authenticator - Thêm account</title>
+    <link rel="stylesheet" href="../assets/styles/app.css" />
+    <link rel="stylesheet" href="import.css" />
+</head>
+<body class="page">
+<main class="wrap">
+    <header class="page-header">
+        <h1>Thêm account</h1>
+        <p class="page-header__lead">
+            Nhập cả danh sách bằng một ảnh QR "Chuyển tài khoản" của Google Authenticator, hoặc thêm từng cái bằng QR
+            thường / nhập tay.
+        </p>
+    </header>
+
+    <div id="lockedNotice" class="alert alert--warning" hidden>
+        Vault đang khoá. Hãy mở khoá từ biểu tượng extension rồi quay lại trang này.
+    </div>
+
+    <div id="workspace" hidden>
+        <nav class="tabs" role="tablist">
+            <button class="tab tab--active" type="button" data-tab="qr" role="tab">Từ ảnh QR</button>
+            <button class="tab" type="button" data-tab="manual" role="tab">Nhập tay</button>
+        </nav>
+
+        <!-- Tab QR -->
+        <section id="panelQr" class="panel" role="tabpanel">
+            <div id="dropZone" class="dropzone" tabindex="0" role="button">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+                     aria-hidden="true">
+                    <rect x="3" y="3" width="7" height="7" rx="1" />
+                    <rect x="14" y="3" width="7" height="7" rx="1" />
+                    <rect x="3" y="14" width="7" height="7" rx="1" />
+                    <path d="M14 14h3v3h-3zM18 18h3v3h-3z" />
+                </svg>
+                <p class="dropzone__title">Kéo thả ảnh QR vào đây</p>
+                <p class="dropzone__hint">hoặc bấm để chọn ảnh, hoặc dán ảnh bằng Ctrl+V</p>
+                <input id="fileInput" type="file" accept="image/*" multiple hidden />
+            </div>
+
+            <details class="howto">
+                <summary>Cách lấy QR chứa toàn bộ account từ Google Authenticator</summary>
+                <ol>
+                    <li>Mở app Google Authenticator trên điện thoại.</li>
+                    <li>Bấm menu ba chấm => "Chuyển tài khoản" => "Xuất tài khoản".</li>
+                    <li>Chọn các account cần chuyển rồi bấm "Tiếp theo".</li>
+                    <li>Chụp màn hình QR hiện ra và đưa file ảnh vào ô trên.</li>
+                    <li>Nếu app hiện nhiều QR liên tiếp, chụp hết và chọn tất cả ảnh cùng lúc.</li>
+                </ol>
+                <p class="howto__warn">
+                    Ảnh QR này chứa toàn bộ secret 2FA ở dạng đọc được. Xoá ảnh khỏi máy ngay sau khi nhập xong.
+                </p>
+            </details>
+
+            <div id="scanStatus" class="alert" hidden></div>
+        </section>
+
+        <!-- Tab nhập tay -->
+        <section id="panelManual" class="panel" role="tabpanel" hidden>
+            <form id="manualForm" autocomplete="off">
+                <div class="grid-2">
+                    <label class="field">
+                        <span class="field__label">Dịch vụ (issuer)</span>
+                        <input id="mIssuer" class="input" type="text" placeholder="GitHub" />
+                    </label>
+                    <label class="field">
+                        <span class="field__label">Tài khoản</span>
+                        <input id="mAccount" class="input" type="text" placeholder="ten@email.com" />
+                    </label>
+                </div>
+
+                <label class="field">
+                    <span class="field__label">Secret (Base32)</span>
+                    <input id="mSecret" class="input input--mono" type="text" placeholder="JBSWY3DPEHPK3PXP" required />
+                    <span class="field__hint">Dán nguyên chuỗi dịch vụ đưa cho bạn. Khoảng trắng và gạch nối tự bỏ.</span>
+                </label>
+
+                <div class="grid-3">
+                    <label class="field">
+                        <span class="field__label">Thuật toán</span>
+                        <select id="mAlgorithm" class="input">
+                            <option value="SHA-1">SHA-1</option>
+                            <option value="SHA-256">SHA-256</option>
+                            <option value="SHA-512">SHA-512</option>
+                        </select>
+                    </label>
+                    <label class="field">
+                        <span class="field__label">Số chữ số</span>
+                        <select id="mDigits" class="input">
+                            <option value="6">6</option>
+                            <option value="8">8</option>
+                        </select>
+                    </label>
+                    <label class="field">
+                        <span class="field__label">Chu kỳ (giây)</span>
+                        <input id="mPeriod" class="input" type="number" value="30" min="1" max="300" />
+                    </label>
+                </div>
+
+                <button class="btn btn--primary" type="submit">Thêm account</button>
+            </form>
+        </section>
+
+        <!-- Bảng review -->
+        <section id="reviewSection" class="review" hidden>
+            <div class="review__head">
+                <h2 id="reviewTitle">Xem lại trước khi lưu</h2>
+                <div class="review__tools">
+                    <button id="selectAllBtn" class="btn btn--sm btn--ghost" type="button">Chọn tất cả</button>
+                    <button id="selectNoneBtn" class="btn btn--sm btn--ghost" type="button">Bỏ chọn</button>
+                </div>
+            </div>
+
+            <div id="batchNotice" class="alert alert--info" hidden></div>
+
+            <div id="reviewList" class="review__list"></div>
+
+            <div class="review__footer">
+                <span id="reviewSummary" class="review__summary"></span>
+                <div class="review__actions">
+                    <button id="cancelBtn" class="btn btn--ghost" type="button">Huỷ</button>
+                    <button id="saveBtn" class="btn btn--primary" type="button">Lưu vào vault</button>
+                </div>
+            </div>
+        </section>
+    </div>
+</main>
+
+<script type="module" src="import.js"></script>
+</body>
+</html>

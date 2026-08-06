@@ -1,0 +1,59 @@
+.unlock-page {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 24px;
+}
+
+.card {
+    width: 100%;
+    max-width: 380px;
+    padding: 26px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--bg-elevated);
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.brand h1 {
+    font-size: 18px;
+}
+
+.lead {
+    margin: 0 0 18px;
+    color: var(--text-muted);
+    font-size: 13px;
+}
+
+.checkline {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 16px;
+    color: var(--text-muted);
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.checkline input {
+    margin-top: 2px;
+    accent-color: var(--accent);
+}
+
+.footnote {
+    margin: 16px 0 0;
+    color: var(--text-faint);
+    font-size: 12px;
+    text-align: center;
+}
+
+#biometricBtn {
+    margin-top: 10px;
+}
