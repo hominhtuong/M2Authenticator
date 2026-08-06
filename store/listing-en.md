@@ -33,6 +33,13 @@ It is built for people who want the convenience of a browser authenticator witho
 properties they would get from a phone app.
 
 
+FULLY OPEN SOURCE
+
+Every line is public and auditable at https://github.com/hominhtuong/M2Authenticator under the MIT license.
+An app that holds your 2FA seeds should not ask you to take its security claims on faith, so you can read
+the code, verify the claims below yourself, build it from source, or fork it and run your own copy.
+
+
 ENCRYPTED BY DEFAULT, NOT AS AN OPTION
 
 Every 2FA secret is encrypted with AES-256-GCM before it ever touches disk. The encryption key is derived
@@ -92,6 +99,7 @@ NO NETWORK, NO TRACKING, NO THIRD-PARTY CODE
   Chrome itself. There is no supply chain to compromise
 - No innerHTML and no eval anywhere in the codebase, with a content security policy that only allows
   scripts bundled with the extension
+- The build pipeline enforces all of the above and refuses to package a release that breaks any of them
 
 
 ALSO INCLUDED
@@ -217,8 +225,20 @@ Tick all three:
 
 ### Privacy policy URL
 
-Publish `PRIVACY.md` at a public URL and paste it here. A GitHub Pages URL or a raw GitHub file both work.
-This field is mandatory.
+The repository is public, so this is ready to use:
+
+```
+https://github.com/hominhtuong/M2Authenticator/blob/main/PRIVACY.md
+```
+
+This field is mandatory. Chrome Web Store accepts a GitHub file URL.
+
+### Support and homepage URLs
+
+```
+Homepage:  https://github.com/hominhtuong/M2Authenticator
+Support:   https://github.com/hominhtuong/M2Authenticator/issues
+```
 
 ---
 
