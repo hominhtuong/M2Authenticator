@@ -9,17 +9,6 @@
 </head>
 <body class="popup">
 
-<!-- Vault chưa tạo -->
-<section id="screenSetup" class="screen screen--center" hidden>
-    <div class="brand">
-        <img src="../assets/icons/icon48.png" alt="" width="40" height="40" />
-        <h1>M2 Authenticator</h1>
-    </div>
-    <p class="screen__lead" data-i18n="popup.setup.lead"></p>
-    <button id="goSetup" class="btn btn--primary btn--block" type="button" data-i18n="popup.setup.action"></button>
-    <div id="setupLang" class="screen__lang"></div>
-</section>
-
 <!-- Vault đang khoá: khung mở khoá dựng từ unlock/unlock-view.js, y hệt cửa sổ unlock -->
 <section id="screenLocked" class="screen screen--center" hidden></section>
 
@@ -40,7 +29,14 @@
                 <path d="M4 7h16M4 12h10M4 17h6" />
             </svg>
         </button>
-        <button id="settingsBtn" class="btn btn--icon" type="button"></button>
+        <button id="settingsBtn" class="btn btn--icon" type="button" aria-pressed="false"
+                data-i18n-title="popup.action.settings" data-i18n-label="popup.action.settings">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 aria-hidden="true">
+                <circle cx="12" cy="12" r="3" />
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+            </svg>
+        </button>
         <button id="lockBtn" class="btn btn--icon" type="button" data-i18n-title="popup.action.lock" data-i18n-label="popup.action.lock">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                  aria-hidden="true">

@@ -110,7 +110,14 @@
 }
 
 .settings--compact .langswitch {
+    display: flex;
     width: 100%;
+}
+
+/* Hai nút chia đôi hàng: trước đây nhóm nút kéo hết chiều ngang còn chữ dồn về trái, nhìn hụt. */
+.settings--compact .langswitch__btn {
+    flex: 1;
+    justify-content: center;
 }
 
 .facts-details summary {

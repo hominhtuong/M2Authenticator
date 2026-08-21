@@ -97,7 +97,7 @@
         },
 
         tabs: { async create() {} },
-        windows: { async create() {} },
+        windows: { async create() {}, async getCurrent() { return { left: 0, top: 0, width: 1440, height: 900 }; } },
         offscreen: { async createDocument() {}, async closeDocument() {} },
     };
 

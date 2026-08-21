@@ -9,7 +9,7 @@
 
 import { confirmDialog, el, show, toast } from '../lib/dom.js';
 import { assessPassword } from '../lib/crypto.js';
-import { openCenteredWindow } from '../lib/windows.js';
+import { openExtensionWindow } from '../lib/windows.js';
 import { buildLanguageSwitcher, describeError, onLanguageChange, t } from '../lib/i18n.js';
 import * as vault from '../lib/vault.js';
 import { isPlatformAuthenticatorAvailable, registerBiometric, webAuthnErrorCode } from '../lib/webauthn.js';
@@ -338,8 +338,10 @@ export function createSettingsView({ compact = false, onSettingsChanged = null, 
                 // Ceremony WebAuthn không sống nổi trong popup: hộp thoại sinh trắc của hệ điều hành
                 // cướp focus làm popup đóng giữa chừng. Trong popup thì mở cửa sổ riêng canh giữa.
                 if (compact) {
-                    openCenteredWindow('options/options.html?focus=biometric', { width: 460, height: 620 });
-                    window.close();
+                    openExtensionWindow('options/options.html?focus=biometric', {
+                        width: 460,
+                        height: 620,
+                    }).finally(() => window.close());
                     return;
                 }
 

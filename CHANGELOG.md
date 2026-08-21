@@ -9,6 +9,51 @@ _English version below each release._
 
 ---
 
+## [1.2.0] - 2026-08-21
+
+### Thay đổi
+
+- **Cài xong là dùng được ngay, không còn màn tạo master password chắn đường.** Vault mới được tạo ở trạng
+  thái chưa đặt master password, mở popup là thấy danh sách và thêm account được luôn. Ai cần bảo vệ thật thì
+  vào Cài đặt => Master password => Bật master password, toàn bộ account giữ nguyên. Đánh đổi được nói rõ
+  trong Cài đặt và trong [SECURITY.md](SECURITY.md).
+- **Bỏ nút quay lại khi đang ở trong Cài đặt.** Bánh răng giữ nguyên icon và sáng lên ở trạng thái đang chọn,
+  bấm lần nữa là về danh sách mã.
+- **Chỗ nào nói tới trình duyệt thì gọi là "trình duyệt".** Trước đây gọi thẳng là Chrome, trong khi extension
+  chạy được trên Brave, Cốc Cốc, Edge và các bản nền Chromium khác.
+
+### Sửa
+
+- Cửa sổ mở khoá bằng vân tay nhảy ra giữa màn hình. Nay nó bám vào góc phải trên của cửa sổ trình duyệt đang
+  dùng, tức là gần đúng chỗ popup vừa đứng.
+- Hàng nút đổi ngôn ngữ trong Cài đặt của popup kéo hết chiều ngang mà chữ dồn về trái, nhìn hụt một mảng.
+  Nay hai nút chia đôi hàng.
+
+<details>
+<summary>English</summary>
+
+**Changed**
+
+- **Installing no longer stops at a create-master-password screen.** A new vault starts with no master
+  password, so the popup opens straight into the list and accounts can be added immediately. Anyone who wants
+  real protection turns it on in Settings => Master password => Turn on master password, with every account
+  left untouched. The trade-off is spelled out in the UI and in SECURITY.md.
+- **The back button inside Settings is gone.** The gear keeps its icon and lights up in a selected state
+  instead; clicking it again returns to the codes.
+- **Wording now says "browser" instead of "Chrome"**, since the extension also runs on Brave, Cốc Cốc, Edge and
+  other Chromium builds.
+
+**Fixed**
+
+- The fingerprint unlock window jumped to the centre of the screen. It now anchors to the top-right corner of
+  the current browser window, roughly where the popup was.
+- In the popup settings, the language switcher stretched across the row while the labels stayed left, leaving
+  an empty gap. The two buttons now split the row evenly.
+
+</details>
+
+---
+
 ## [1.1.0] - 2026-08-21
 
 ### Thêm
@@ -111,5 +156,6 @@ First public release.
 
 </details>
 
+[1.2.0]: https://github.com/hominhtuong/M2Authenticator/releases/tag/v1.2.0
 [1.1.0]: https://github.com/hominhtuong/M2Authenticator/releases/tag/v1.1.0
 [1.0.0]: https://github.com/hominhtuong/M2Authenticator/releases/tag/v1.0.0

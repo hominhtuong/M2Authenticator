@@ -10,16 +10,12 @@ export const en = {
     'common.workingOn': 'Working...',
 
     // ---------------------------------------------------------------- popup
-    'popup.setup.lead':
-        'Create a master password to get started. All of your 2FA codes are encrypted with a key derived from it.',
-    'popup.setup.action': 'Set up now',
 
 
     'popup.search': 'Search accounts...',
     'popup.action.add': 'Add account',
     'popup.action.sort': 'Reorder',
     'popup.action.settings': 'Settings',
-    'popup.action.back': 'Back to codes',
     'popup.action.lock': 'Lock now',
 
     'popup.empty.title': 'No accounts yet',
@@ -159,8 +155,6 @@ export const en = {
     // -------------------------------------------------------------- options
     'options.title': 'Settings',
     'options.lead': 'Everything stays on your machine. This extension never sends anything anywhere.',
-    'options.welcome':
-        'Your vault is ready. Consider turning on fingerprint unlock below so you do not have to type your password every time.',
     'options.locked':
         'The vault is locked. Unlock it from the extension icon, then reload this page to change security settings.',
 
@@ -168,38 +162,39 @@ export const en = {
     'options.language.lead': 'Applies to the whole extension and takes effect immediately.',
 
     'options.protection.title': 'Master password',
-    'options.protection.lead': 
-        'The master password is what turns your saved secrets into unreadable data on disk. You can turn it off for convenience, but then anything able to read this Chrome profile can read your codes.',
+    'options.protection.lead':
+        'A master password is what turns your saved secrets into unreadable data on disk. Without one the vault opens by itself, which is convenient, but then anything able to read this browser profile can read your codes.',
     'options.protection.on': 'On. The vault stays encrypted until you type your master password.',
     'options.protection.off': 'Off. The vault opens by itself, with no password and no lock.',
     'options.protection.disable': 'Turn off master password',
     'options.protection.disableTitle': 'Turn off the master password?',
-    'options.protection.disableMessage': 
-        'Your codes will open with no password, and the key that decrypts them sits next to the data in this Chrome profile. Auto-lock, fingerprint unlock and your current password are removed. Turning it back on means setting a new password from scratch.',
+    'options.protection.disableMessage':
+        'Your codes will open with no password, and the key that decrypts them sits next to the data in this browser profile. Auto-lock, fingerprint unlock and your current password are removed. Turning it back on means setting a new password from scratch.',
     'options.protection.disableAction': 'Turn it off',
     'options.protection.disabled': 'Master password turned off.',
     'options.protection.needUnlock': 'Unlock the vault first to change this.',
-    'options.protection.enable': 'Turn master password back on',
-    'options.protection.enableLead': 'Pick a new password. The old one was removed when you turned this off.',
+    'options.protection.enable': 'Turn on master password',
+    'options.protection.enableLead':
+        'Pick a master password. It encrypts the key to your vault and is never stored anywhere, so there is no way to recover it if you forget it.',
     'options.protection.newPassword': 'New master password',
     'options.protection.confirm': 'Repeat new master password',
     'options.protection.submit': 'Turn on and rewrap the key',
     'options.protection.working': 'Deriving key...',
     'options.protection.enabled': 'Master password is on again.',
     'options.protection.mismatch': 'The two passwords do not match.',
-    'options.protection.hiddenNote': 
+    'options.protection.hiddenNote':
         'Auto-lock, fingerprint unlock and change password are hidden because there is no master password to lock anything with.',
 
     'options.lock.title': 'Auto-lock',
     'options.lock.lead':
-        'The vault always locks when you close Chrome. The setting below is how long it waits while idle before locking sooner.',
+        'The vault always locks when you close the browser. The setting below is how long it waits while idle before locking sooner.',
     'options.lock.after': 'Lock after',
     'options.lock.1': '1 minute',
     'options.lock.5': '5 minutes',
     'options.lock.15': '15 minutes',
     'options.lock.30': '30 minutes',
     'options.lock.60': '1 hour',
-    'options.lock.0': 'Only when Chrome closes',
+    'options.lock.0': 'Only when the browser closes',
     'options.lock.saved': 'Auto-lock setting saved.',
 
     'options.display.title': 'Codes and clipboard',
@@ -254,7 +249,7 @@ export const en = {
     'options.facts.lockedText': 'only ciphertext on disk. No readable copy of any secret exists.',
     'options.facts.unlocked': 'While unlocked:',
     'options.facts.unlockedText':
-        'the data key lives in Chrome session memory and disappears when the browser closes.',
+        'the data key lives in the browser session memory and disappears when the browser closes.',
     'options.facts.network': 'Network:',
     'options.facts.networkText': 'the extension cannot reach any website and makes no network calls.',
     'options.facts.sync': 'Sync:',
@@ -310,7 +305,7 @@ export const en = {
     'error.protobufBadFieldNumber': 'Malformed protobuf: field number 0 is not valid.',
     'error.protobufBadWireType': 'Malformed protobuf: unsupported wire type {wireType}.',
 
-    'error.qrNoDetector': 'Your Chrome cannot read QR codes yet (BarcodeDetector). Please update Chrome.',
+    'error.qrNoDetector': 'Your browser cannot read QR codes yet (BarcodeDetector). Please update to a newer version.',
     'error.qrCannotOpenImage': 'The image could not be opened. The format may be unsupported.',
     'error.qrNotFound': 'No QR code found in the image.',
 

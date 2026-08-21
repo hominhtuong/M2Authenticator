@@ -94,7 +94,7 @@ ui.setupForm.addEventListener('submit', async (event) => {
         await vault.initialize(ui.newPassword.value);
         ui.newPassword.value = '';
         ui.confirmPassword.value = '';
-        chrome.tabs.create({ url: chrome.runtime.getURL('options/options.html?welcome=1') });
+        // Không mở thêm tab nào: user quay lại icon extension là dùng được ngay.
         done();
     } catch (error) {
         setSetupAlert(describeError(error));

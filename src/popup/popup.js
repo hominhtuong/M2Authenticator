@@ -3,7 +3,7 @@ import { copyCode } from '../lib/clipboard.js';
 import { MSG } from '../lib/messages.js';
 import { displayLabel } from '../lib/otpauth.js';
 import { generateForAccount, secondsRemaining } from '../lib/totp.js';
-import { openCenteredWindow } from '../lib/windows.js';
+import { openExtensionWindow } from '../lib/windows.js';
 import { buildLanguageSwitcher, initI18n, onLanguageChange, t } from '../lib/i18n.js';
 import { createUnlockView } from '../unlock/unlock-view.js';
 import { createSettingsView } from '../settings/settings-view.js';
@@ -15,7 +15,6 @@ const EXPIRY_WARNING_SECONDS = 5;
 
 const ui = {
     screens: {
-        setup: $('#screenSetup'),
         locked: $('#screenLocked'),
         vault: $('#screenVault'),
     },
@@ -66,8 +65,9 @@ function mountUnlockView() {
     unlockView = createUnlockView({
         onUnlocked: () => enterVault(),
         onBiometricRequest: () => {
-            openCenteredWindow('unlock/unlock.html?biometric=1', { width: 396, height: 560 });
-            window.close();
+            openExtensionWindow('unlock/unlock.html?biometric=1', { width: 396, height: 560 }).finally(
+                () => window.close(),
+            );
         },
     });
 
@@ -85,15 +85,6 @@ async function showLocked() {
 
 // ------------------------------------------------------------- cài đặt
 
-function setSettingsIcon() {
-    clear(ui.settingsBtn);
-    ui.settingsBtn.append(icon(settingsOpen ? ICONS.back : ICONS.gear, 18));
-
-    const label = t(settingsOpen ? 'popup.action.back' : 'popup.action.settings');
-    ui.settingsBtn.title = label;
-    ui.settingsBtn.setAttribute('aria-label', label);
-}
-
 function paintSettingsMode() {
     document.body.dataset.view = settingsOpen ? 'settings' : 'list';
 
@@ -104,7 +95,10 @@ function paintSettingsMode() {
     show(ui.settingsPanel, settingsOpen);
     show(ui.list, !settingsOpen);
     show(ui.emptyState, !settingsOpen && accounts.length === 0);
-    setSettingsIcon();
+
+    // Bánh răng giữ nguyên icon, chỉ sáng lên khi đang ở trong cài đặt.
+    ui.settingsBtn.dataset.active = String(settingsOpen);
+    ui.settingsBtn.setAttribute('aria-pressed', String(settingsOpen));
 }
 
 async function openSettings() {
@@ -137,11 +131,6 @@ function closeSettings() {
 async function paintLockButton() {
     show(ui.lockBtn, (await vault.getProtection()) === vault.Protection.PASSWORD);
 }
-
-$('#goSetup').addEventListener('click', () => {
-    openCenteredWindow('unlock/unlock.html?setup=1', { width: 396, height: 700 });
-    window.close();
-});
 
 // -------------------------------------------------------------- vault
 
@@ -198,11 +187,6 @@ function icon(paths, size = 16) {
 
 const ICONS = {
     copy: ['M9 9h10v10H9z', 'M5 15V5h10'],
-    back: ['M19 12H5', 'M12 19l-7-7 7-7'],
-    gear: [
-        'M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0',
-        'M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z',
-    ],
     trash: ['M4 7h16', 'M10 11v6M14 11v6', 'M6 7l1 13h10l1-13', 'M9 7V4h6v3'],
     up: ['M12 19V5', 'M5 12l7-7 7 7'],
     down: ['M12 5v14', 'M19 12l-7 7-7-7'],
@@ -452,23 +436,20 @@ async function boot() {
     await initI18n();
 
     // Màn khoá tự mang nút cờ của nó (dựng trong unlock-view.js).
-    $('#setupLang').append(buildLanguageSwitcher({ compact: true }));
     $('#vaultLang').append(buildLanguageSwitcher({ compact: true }));
 
     // Đổi ngôn ngữ phải vẽ lại danh sách vì nhãn nút và tên mặc định dựng bằng JS.
     onLanguageChange(async () => {
         settings = await vault.getSettings();
-        setSettingsIcon();
         if (!ui.screens.vault.hidden) renderList();
     });
 
-    setSettingsIcon();
-
-    const state = await vault.getState();
-
+    // Lần đầu mở mà chưa có vault (mới cài, hoặc vừa xoá sạch): dựng bản không master password
+    // rồi vào thẳng danh sách. Không chặn user bằng một màn đặt mật khẩu.
+    let state = await vault.getState();
     if (state === vault.VaultState.UNINITIALIZED) {
-        showScreen('setup');
-        return;
+        await vault.ensureVault();
+        state = await vault.getState();
     }
 
     if (state === vault.VaultState.LOCKED) {

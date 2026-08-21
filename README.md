@@ -14,7 +14,7 @@ một ứng dụng giữ seed 2FA thì phải kiểm chứng được.
 Giao diện có **tiếng Anh và tiếng Việt**, đổi bằng nút cờ ngay trong extension, không cần tải lại.
 
 [![Chrome Web Store](https://img.shields.io/badge/Chrome%20Web%20Store-c%C3%A0i%20ngay-4285F4?logo=googlechrome&logoColor=white)](https://chromewebstore.google.com/detail/lkfhkcegjopcbkoafepfmmajlkbnglfh)
-![Version](https://img.shields.io/badge/version-1.1.0-informational)
+![Version](https://img.shields.io/badge/version-1.2.0-informational)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 ![Manifest](https://img.shields.io/badge/manifest-v3-brightgreen)
 ![Chrome](https://img.shields.io/badge/chrome-116%2B-orange)
@@ -23,20 +23,22 @@ Giao diện có **tiếng Anh và tiếng Việt**, đổi bằng nút cờ ngay
 
 ---
 
-## Có gì mới trong 1.1.0
+## Có gì mới trong 1.2.0
 
 Lịch sử đầy đủ ở [CHANGELOG.md](CHANGELOG.md).
 
-- **Cài đặt mở ngay trong popup.** Bấm bánh răng là popup giãn ra và hiện cài đặt tại chỗ, không nhảy sang tab
-  khác. Bánh răng đổi thành mũi tên quay lại; nút ổ khoá đóng cài đặt và khoá vault ngay trong popup.
-- **Một khung mở khoá duy nhất.** Popup và cửa sổ mở khoá nay dùng chung một bản dựng nên không còn cảnh giao
-  diện lệch chỗ khi bấm vân tay. Lúc quét vân tay, khung đó đổi trạng thái tại chỗ thay vì mở ra màn khác.
-- **Chống dò mật khẩu chặt hơn.** 5 lần sai đầu không phạt, từ lần thứ 6 phải chờ 15s rồi gấp đôi mỗi lần, trần
-  30 phút. Lúc bị phạt thì khoá cả ô mật khẩu lẫn nút vân tay và đếm ngược tại chỗ. Mở khoá thành công là reset.
-- **Tắt được master password.** Dành cho ai thấy nhập mật khẩu quá phiền. Đánh đổi rất rõ, đọc kỹ mục
-  [Tắt master password](#tắt-master-password-đọc-kỹ) trước khi bật.
+- **Cài xong là dùng được ngay.** Không còn màn tạo master password chắn đường người mới. Vault mặc định chưa
+  đặt mật khẩu; ai cần bảo vệ thật thì bật trong Cài đặt, account giữ nguyên. Đánh đổi nói rõ ở mục
+  [Tắt master password](#tắt-master-password-đọc-kỹ).
+- **Cài đặt mở ngay trong popup** (từ 1.1.0). Bấm bánh răng là popup giãn ra và hiện cài đặt tại chỗ; bánh răng
+  sáng lên khi đang ở trong cài đặt, bấm lần nữa là về danh sách mã.
+- **Một khung mở khoá duy nhất** (từ 1.1.0), nên không còn cảnh giao diện lệch chỗ khi bấm vân tay. Cửa sổ quét
+  vân tay nay bám vào góc phải trên của cửa sổ trình duyệt, gần đúng chỗ popup vừa đứng.
+- **Chống dò mật khẩu chặt hơn** (từ 1.1.0): 5 lần sai đầu không phạt, từ lần thứ 6 chờ 15s rồi gấp đôi mỗi
+  lần, trần 30 phút, khoá cả ô mật khẩu lẫn nút vân tay trong lúc chờ.
 
-Vault đang có không cần làm gì khi cập nhật: định dạng lưu trữ giữ nguyên, không có bước migrate nào.
+Vault đang có không cần làm gì khi cập nhật: định dạng lưu trữ giữ nguyên, không có bước migrate, mật khẩu và
+vân tay đã đặt vẫn dùng bình thường. Mặc định mới chỉ áp cho máy cài lần đầu.
 
 ---
 
@@ -74,9 +76,17 @@ Yêu cầu: Chrome 116 trở lên. Không cần Node để chạy extension, ch�
 
 ## Hướng dẫn sử dụng
 
-### Lần đầu: tạo master password
+### Lần đầu: dùng được ngay
 
-Sau khi cài, một tab thiết lập tự mở. Master password này dùng để mã hoá toàn bộ mã 2FA của bạn.
+Cài xong là dùng được, không có màn đặt mật khẩu chắn đường. Vault được tạo sẵn ở trạng thái **chưa đặt master
+password**: mở popup là thấy danh sách, thêm account được luôn.
+
+Đánh đổi phải biết: khi chưa đặt master password, khoá giải mã nằm ngay trong profile trình duyệt, cạnh dữ
+liệu. Bất cứ thứ gì đọc được profile đó đều đọc được seed 2FA của bạn.
+
+### Bật master password (nên làm)
+
+**Cài đặt => Master password => Bật master password.** Toàn bộ account giữ nguyên, chỉ khoá được bọc lại.
 
 Cách đặt mật khẩu vừa mạnh vừa dễ nhớ: **một câu dài từ 16 ký tự trở lên**, ví dụ `con mèo trèo cây cau 2026`.
 Không cần ký tự đặc biệt nếu câu đủ dài. Đây không phải cho tiện - độ dài đóng góp entropy nhiều hơn hẳn
@@ -141,14 +151,16 @@ Mặc định là tiếng Anh. Hiện hỗ trợ tiếng Anh và tiếng Việt.
 Bấm nút bánh răng là cài đặt mở ngay trong popup, không nhảy sang tab khác. Bấm mũi tên quay lại để về danh
 sách mã, bấm ổ khoá để khoá vault luôn.
 
-- **Tự khoá sau:** mặc định 5 phút không thao tác. Đặt "Chỉ khi đóng Chrome" nếu máy cá nhân và bạn thấy phiền.
+- **Tự khoá sau:** mặc định 5 phút không thao tác. Đặt "Chỉ khi đóng trình duyệt" nếu máy cá nhân và bạn thấy
+  phiền. Chỉ hiện khi đã bật master password.
 - **Tự xoá clipboard:** mặc định 20 giây sau khi copy mã. Đặt "Không tự xoá" nếu bạn hay copy thứ khác xen giữa.
 - **Làm mờ mã:** bật nếu hay dùng máy nơi đông người hoặc share màn hình.
-- **Master password:** tắt được nếu bạn thấy phiền. Đọc kỹ phần dưới trước khi tắt.
+- **Master password:** bật hoặc tắt bất cứ lúc nào. Đọc kỹ phần dưới trước khi tắt.
 
 ### Tắt master password (đọc kỹ)
 
-Trong **Cài đặt => Master password** có nút tắt hẳn lớp mật khẩu. Sau khi tắt:
+Trong **Cài đặt => Master password** có nút tắt hẳn lớp mật khẩu. Đây cũng là trạng thái mặc định của bản mới
+cài. Khi không có master password:
 
 - Vault mở thẳng, không hỏi gì, không auto-lock. Các mục Tự khoá, Mở khoá bằng vân tay và Đổi mật khẩu bị ẩn
   vì không còn mật khẩu nào để khoá.
@@ -215,15 +227,15 @@ làm popup đóng và huỷ ceremony giữa chừng.
 
 ### Vòng đời khoá trong bộ nhớ
 
-Khi mở khoá, DEK nằm trong `chrome.storage.session`: chỉ trong RAM, không ghi đĩa, tự xoá khi đóng Chrome, và
-không cho content script đọc (extension này cũng không có content script nào).
+Khi mở khoá, DEK nằm trong `chrome.storage.session`: chỉ trong RAM, không ghi đĩa, tự xoá khi đóng trình duyệt,
+và không cho content script đọc (extension này cũng không có content script nào).
 
 Đây là đánh đổi có chủ ý. Service worker của Manifest V3 bị kill bất kỳ lúc nào, nên giữ khoá trong biến toàn
 cục là vô nghĩa: user sẽ phải nhập lại mật khẩu vài phút một lần và sẽ chọn mật khẩu yếu để đỡ mệt.
 
 ### Tự khoá và tự dọn
 
-- Vault tự khoá sau thời gian rảnh bạn đặt, và **luôn** khoá khi đóng Chrome
+- Khi đã bật master password, vault tự khoá sau thời gian rảnh bạn đặt và **luôn** khoá khi đóng trình duyệt
 - Auto-lock chạy hai lớp: kiểm mốc thời gian mỗi lần truy cập vault, cộng một alarm xoá khoá khỏi bộ nhớ đúng
   hạn kể cả khi không ai mở popup
 - Mã copy xong bị ghi đè khỏi clipboard sau N giây, do service worker lên lịch nên vẫn chạy sau khi popup đóng
@@ -361,7 +373,7 @@ với chi tiết khai thác được.
 
 ## Trạng thái
 
-Bản hiện tại là **1.1.0**, đã lên Chrome Web Store. Phần thuật toán (TOTP/HOTP, Base32, protobuf, AES-GCM,
+Bản hiện tại là **1.2.0**, đã lên Chrome Web Store. Phần thuật toán (TOTP/HOTP, Base32, protobuf, AES-GCM,
 PBKDF2, HKDF) và chính sách chống dò mật khẩu có 53 test tự động phủ, gồm vector chính thức của RFC 6238,
 RFC 4226 và RFC 4648, cùng các test giữ cho hai bảng dịch không lệch nhau.
 

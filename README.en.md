@@ -15,7 +15,7 @@ The interface ships in **English and Vietnamese**, switched with a flag button i
 needed.
 
 [![Chrome Web Store](https://img.shields.io/badge/Chrome%20Web%20Store-install-4285F4?logo=googlechrome&logoColor=white)](https://chromewebstore.google.com/detail/lkfhkcegjopcbkoafepfmmajlkbnglfh)
-![Version](https://img.shields.io/badge/version-1.1.0-informational)
+![Version](https://img.shields.io/badge/version-1.2.0-informational)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 ![Manifest](https://img.shields.io/badge/manifest-v3-brightgreen)
 ![Chrome](https://img.shields.io/badge/chrome-116%2B-orange)
@@ -24,24 +24,22 @@ needed.
 
 ---
 
-## What is new in 1.1.0
+## What is new in 1.2.0
 
 Full history in [CHANGELOG.md](CHANGELOG.md).
 
-- **Settings open inside the popup.** Click the gear and the popup grows to show settings in place, instead of
-  jumping to another tab. The gear turns into a back arrow; the lock button closes settings and locks the vault
-  right there in the popup.
-- **One single unlock view.** The popup and the unlock window are built from the same code, so nothing shifts
-  around when you press unlock with fingerprint. Scanning changes the state of that same view rather than
-  opening a different screen.
-- **Stricter brute-force protection.** The first 5 wrong attempts cost nothing; the 6th waits 15s and each
-  further attempt doubles the wait, capped at 30 minutes. While waiting, both the password field and the
-  fingerprint button are disabled and the view counts down in place. A successful unlock resets the counter.
-- **The master password can be turned off.** For people who find typing it every time too much friction. The
-  trade-off is real, so read [Turning off the master password](#turning-off-the-master-password-read-this)
-  before you enable it.
+- **Usable the moment it is installed.** No create-a-master-password wall for newcomers. A fresh vault starts
+  with no password; anyone who wants real protection turns it on in Settings and keeps every account. The
+  trade-off is spelled out under [Turning off the master password](#turning-off-the-master-password-read-this).
+- **Settings open inside the popup** (since 1.1.0). Click the gear and the popup grows to show settings in
+  place; the gear lights up while you are in there, and clicking it again returns to your codes.
+- **One single unlock view** (since 1.1.0), so nothing shifts around when you press unlock with fingerprint.
+  The scanning window now anchors to the top-right of the browser window, roughly where the popup was.
+- **Stricter brute-force protection** (since 1.1.0): 5 free attempts, then 15s doubling each time up to a
+  30 minute cap, with both the password field and the fingerprint button disabled while you wait.
 
-Existing vaults need nothing on upgrade: the storage format is unchanged and there is no migration step.
+Existing vaults need nothing on upgrade: the storage format is unchanged, there is no migration step, and any
+password or fingerprint you already set keeps working. The new default applies to fresh installs only.
 
 ---
 
@@ -81,9 +79,18 @@ extension.
 
 ## How to use it
 
-### First run: create a master password
+### First run: usable right away
 
-A setup tab opens right after installation. This master password encrypts every 2FA code you store.
+There is no setup wall after installing. The vault is created for you with **no master password**: open the
+popup and you can start adding accounts immediately.
+
+The trade-off to know about: with no master password, the decryption key sits in the browser profile next to
+the data. Anything able to read that profile can read your 2FA seeds.
+
+### Turn on a master password (recommended)
+
+**Settings => Master password => Turn on master password.** Every account stays where it is; only the key gets
+rewrapped.
 
 The way to get something both strong and memorable: **one long sentence of 16 characters or more**, for example
 `the quick brown fox jumps 2026`. No special characters needed if the sentence is long enough. That is not a
@@ -151,16 +158,17 @@ English is the default. English and Vietnamese are supported today.
 Clicking the gear opens settings inside the popup, not in another tab. The back arrow returns to your codes;
 the padlock locks the vault straight away.
 
-- **Auto-lock after:** 5 idle minutes by default. Set it to "Only when Chrome closes" on a personal machine if
-  the prompts annoy you.
+- **Auto-lock after:** 5 idle minutes by default. Set it to "Only when the browser closes" on a personal
+  machine if the prompts annoy you. Only shown once a master password is on.
 - **Clear the clipboard:** 20 seconds after copying a code by default. Set "Never clear" if you often copy
   other things in between.
 - **Blur codes:** turn it on if you use the machine in public or share your screen a lot.
-- **Master password:** can be turned off entirely. Read the section below first.
+- **Master password:** turn it on or off at any time. Read the section below first.
 
 ### Turning off the master password (read this)
 
-**Settings => Master password** has a button that removes the password layer completely. After that:
+**Settings => Master password** has a button that removes the password layer completely. This is also the
+default state of a fresh install. With no master password:
 
 - The vault opens straight away with no prompt and no auto-lock. The Auto-lock, Fingerprint unlock and Change
   password sections disappear, because there is no password left to lock anything with.
@@ -229,8 +237,8 @@ takes focus, closes the popup and aborts the ceremony halfway.
 
 ### Key lifetime in memory
 
-While unlocked, the DEK lives in `chrome.storage.session`: memory only, never written to disk, wiped when
-Chrome closes, and not readable by content scripts (this extension has none anyway).
+While unlocked, the DEK lives in `chrome.storage.session`: memory only, never written to disk, wiped when the
+browser closes, and not readable by content scripts (this extension has none anyway).
 
 That is a deliberate trade-off. A Manifest V3 service worker can be killed at any moment, so holding the key in
 a global variable is pointless: users would retype their password every few minutes and would then pick a weak
@@ -238,7 +246,8 @@ one to cope.
 
 ### Auto-lock and cleanup
 
-- The vault locks after the idle time you set, and **always** locks when Chrome closes
+- With a master password on, the vault locks after the idle time you set and **always** locks when the browser
+  closes
 - Auto-lock runs on two layers: a deadline checked on every vault access, plus an alarm that wipes the key from
   memory on time even if nobody opens the popup
 - Copied codes are overwritten in the clipboard after N seconds, scheduled by the service worker so it still
@@ -378,7 +387,7 @@ public issue with exploit details.
 
 ## Status
 
-The current release is **1.1.0**, live on the Chrome Web Store. The algorithmic core (TOTP/HOTP, Base32,
+The current release is **1.2.0**, live on the Chrome Web Store. The algorithmic core (TOTP/HOTP, Base32,
 protobuf, AES-GCM, PBKDF2, HKDF) and the brute-force policy are covered by 53 automated tests, including the
 official RFC 6238, RFC 4226 and RFC 4648 vectors, plus tests that keep the two translation catalogues in sync.
 

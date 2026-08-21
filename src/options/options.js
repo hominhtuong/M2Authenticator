@@ -11,7 +11,6 @@ import { createSettingsView } from '../settings/settings-view.js';
 import * as vault from '../lib/vault.js';
 
 const ui = {
-    welcomeNotice: $('#welcomeNotice'),
     lockedNotice: $('#lockedNotice'),
     host: $('#settingsHost'),
 };
@@ -27,7 +26,6 @@ async function boot() {
     await initI18n();
 
     const params = new URLSearchParams(location.search);
-    if (params.has('welcome')) show(ui.welcomeNotice, true);
 
     view = createSettingsView({
         onVaultDestroyed: () => setTimeout(() => location.reload(), 800),

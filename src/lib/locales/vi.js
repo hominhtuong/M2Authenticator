@@ -10,16 +10,12 @@ export const vi = {
     'common.workingOn': 'Đang xử lý...',
 
     // ---------------------------------------------------------------- popup
-    'popup.setup.lead':
-        'Tạo master password để bắt đầu. Toàn bộ mã 2FA sẽ được mã hoá bằng khoá dẫn xuất từ mật khẩu này.',
-    'popup.setup.action': 'Thiết lập ngay',
 
 
     'popup.search': 'Tìm account...',
     'popup.action.add': 'Thêm account',
     'popup.action.sort': 'Sắp xếp',
     'popup.action.settings': 'Cài đặt',
-    'popup.action.back': 'Quay lại danh sách mã',
     'popup.action.lock': 'Khoá lại',
 
     'popup.empty.title': 'Chưa có account nào',
@@ -159,8 +155,6 @@ export const vi = {
     // -------------------------------------------------------------- options
     'options.title': 'Cài đặt',
     'options.lead': 'Mọi dữ liệu nằm trên máy bạn. Extension không gửi bất cứ thứ gì ra ngoài.',
-    'options.welcome':
-        'Vault đã được tạo. Nên bật thêm mở khoá bằng vân tay ở mục bên dưới để đỡ phải gõ mật khẩu mỗi lần.',
     'options.locked':
         'Vault đang khoá. Mở khoá từ biểu tượng extension rồi tải lại trang này để đổi cài đặt bảo mật.',
 
@@ -168,38 +162,39 @@ export const vi = {
     'options.language.lead': 'Áp dụng cho toàn bộ extension và có hiệu lực ngay.',
 
     'options.protection.title': 'Master password',
-    'options.protection.lead': 
-        'Master password là thứ biến seed đã lưu thành dữ liệu không đọc được trên đĩa. Bạn có thể tắt cho tiện, nhưng khi đó bất cứ thứ gì đọc được profile Chrome này đều đọc được mã của bạn.',
+    'options.protection.lead':
+        'Master password là thứ biến seed đã lưu thành dữ liệu không đọc được trên đĩa. Không đặt thì vault tự mở, tiện hơn, nhưng bất cứ thứ gì đọc được profile trình duyệt này đều đọc được mã của bạn.',
     'options.protection.on': 'Đang bật. Vault chỉ mở khi bạn nhập master password.',
     'options.protection.off': 'Đang tắt. Vault tự mở, không cần mật khẩu và không có khoá.',
     'options.protection.disable': 'Tắt master password',
     'options.protection.disableTitle': 'Tắt master password?',
-    'options.protection.disableMessage': 
-        'Mã 2FA sẽ mở ra mà không cần mật khẩu, và khoá giải mã nằm ngay cạnh dữ liệu trong profile Chrome này. Auto-lock, mở khoá bằng vân tay và mật khẩu hiện tại đều bị gỡ. Bật lại là phải đặt mật khẩu mới từ đầu.',
+    'options.protection.disableMessage':
+        'Mã 2FA sẽ mở ra mà không cần mật khẩu, và khoá giải mã nằm ngay cạnh dữ liệu trong profile trình duyệt này. Auto-lock, mở khoá bằng vân tay và mật khẩu hiện tại đều bị gỡ. Bật lại là phải đặt mật khẩu mới từ đầu.',
     'options.protection.disableAction': 'Tắt đi',
     'options.protection.disabled': 'Đã tắt master password.',
     'options.protection.needUnlock': 'Mở khoá vault trước rồi mới đổi được mục này.',
-    'options.protection.enable': 'Bật lại master password',
-    'options.protection.enableLead': 'Đặt mật khẩu mới. Mật khẩu cũ đã bị gỡ lúc bạn tắt tính năng này.',
+    'options.protection.enable': 'Bật master password',
+    'options.protection.enableLead':
+        'Đặt master password. Nó mã hoá khoá mở vault và không được lưu ở đâu cả, nên quên là không có cách khôi phục.',
     'options.protection.newPassword': 'Master password mới',
     'options.protection.confirm': 'Nhập lại master password mới',
     'options.protection.submit': 'Bật và bọc lại khoá',
     'options.protection.working': 'Đang dẫn xuất khoá...',
     'options.protection.enabled': 'Đã bật lại master password.',
     'options.protection.mismatch': 'Hai mật khẩu không khớp.',
-    'options.protection.hiddenNote': 
+    'options.protection.hiddenNote':
         'Auto-lock, mở khoá bằng vân tay và đổi mật khẩu đang ẩn vì không còn master password nào để khoá.',
 
     'options.lock.title': 'Khoá tự động',
     'options.lock.lead':
-        'Vault luôn tự khoá khi bạn đóng Chrome. Mốc dưới đây là thời gian rảnh trước khi khoá sớm hơn.',
+        'Vault luôn tự khoá khi bạn đóng trình duyệt. Mốc dưới đây là thời gian rảnh trước khi khoá sớm hơn.',
     'options.lock.after': 'Tự khoá sau',
     'options.lock.1': '1 phút',
     'options.lock.5': '5 phút',
     'options.lock.15': '15 phút',
     'options.lock.30': '30 phút',
     'options.lock.60': '1 giờ',
-    'options.lock.0': 'Chỉ khi đóng Chrome',
+    'options.lock.0': 'Chỉ khi đóng trình duyệt',
     'options.lock.saved': 'Đã lưu mốc tự khoá.',
 
     'options.display.title': 'Hiển thị và clipboard',
@@ -254,7 +249,7 @@ export const vi = {
     'options.facts.lockedText': 'trên đĩa chỉ có ciphertext. Không có bản sao secret nào ở dạng đọc được.',
     'options.facts.unlocked': 'Khi mở khoá:',
     'options.facts.unlockedText':
-        'khoá dữ liệu nằm trong bộ nhớ phiên của Chrome, tự mất khi đóng trình duyệt.',
+        'khoá dữ liệu nằm trong bộ nhớ phiên của trình duyệt, tự mất khi đóng trình duyệt.',
     'options.facts.network': 'Mạng:',
     'options.facts.networkText': 'extension không có quyền truy cập bất kỳ website nào và không gọi mạng.',
     'options.facts.sync': 'Đồng bộ:',
@@ -310,7 +305,7 @@ export const vi = {
     'error.protobufBadFieldNumber': 'Protobuf hỏng: field number 0 không hợp lệ.',
     'error.protobufBadWireType': 'Protobuf hỏng: wire type {wireType} không hỗ trợ.',
 
-    'error.qrNoDetector': 'Chrome của bạn chưa hỗ trợ đọc QR (BarcodeDetector). Hãy cập nhật Chrome.',
+    'error.qrNoDetector': 'Trình duyệt của bạn chưa hỗ trợ đọc QR (BarcodeDetector). Hãy cập nhật lên bản mới hơn.',
     'error.qrCannotOpenImage': 'Không mở được ảnh. Định dạng có thể không hợp lệ.',
     'error.qrNotFound': 'Không tìm thấy mã QR trong ảnh.',
 

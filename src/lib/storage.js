@@ -2,7 +2,7 @@
  * Bọc chrome.storage thành promise + hằng số key dùng chung.
  *
  * local   : ghi xuống đĩa. Chỉ chứa ciphertext và cấu hình không nhạy cảm.
- * session : chỉ nằm trong RAM, tự bay khi đóng Chrome. Chứa DEK khi vault đang mở.
+ * session : chỉ nằm trong RAM, tự bay khi đóng trình duyệt. Chứa DEK khi vault đang mở.
  */
 
 export const LOCAL_KEYS = {

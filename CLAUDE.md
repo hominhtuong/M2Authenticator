@@ -51,12 +51,13 @@ DEK được bọc song song bởi nhiều cách mở khoá: một bản bọc b
 WebAuthn PRF (vân tay). Vì vậy đổi mật khẩu chỉ cần bọc lại DEK, không phải mã hoá lại toàn bộ vault, và
 đăng ký/gỡ vân tay không ảnh hưởng đường password.
 
-Có thêm chế độ `protection: 'none'` khi user tự tắt lớp master password: DEK được bọc bằng một khoá ngẫu nhiên
-nằm ngay trong `chrome.storage.local`, còn bản bọc bằng password và bằng vân tay bị xoá. Đây là tiện lợi, không
-phải bảo vệ - UI phải nói thẳng điều đó, và bật lại là đặt mật khẩu mới từ đầu. Bản ghi thiếu trường `protection`
-được đọc là `'password'` nên vault cũ không cần migrate.
+Có thêm chế độ `protection: 'none'`, và **đây là mặc định của vault mới tạo** (cài xong dùng được ngay, không
+chặn người mới bằng màn đặt mật khẩu). User bật lớp mật khẩu trong Cài đặt bất cứ lúc nào. Ở chế độ này DEK
+được bọc bằng một khoá ngẫu nhiên nằm ngay trong `chrome.storage.local`, không có bản bọc bằng password
+hay vân tay. Đây là tiện lợi, không phải bảo vệ - UI phải nói thẳng điều đó, và bật mật khẩu là đặt mới từ đầu.
+Bản ghi thiếu trường `protection` được đọc là `'password'` nên vault cũ không cần migrate.
 
-Khi mở khoá, DEK dạng raw nằm trong `chrome.storage.session` (bộ nhớ, không ghi đĩa, tự xoá khi đóng Chrome).
+Khi mở khoá, DEK dạng raw nằm trong `chrome.storage.session` (bộ nhớ, không ghi đĩa, tự xoá khi đóng trình duyệt).
 Đây là đánh đổi có chủ ý để service worker của MV3 bị kill mà user không phải nhập lại mật khẩu liên tục.
 
 ## Quy tắc khi sửa code

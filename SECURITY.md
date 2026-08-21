@@ -45,7 +45,7 @@ Tách hai tầng vì ba lý do:
 Khi mở khoá, DEK dạng raw được cất trong `chrome.storage.session`:
 
 - Chỉ nằm trong RAM, không ghi xuống đĩa.
-- Tự xoá khi đóng Chrome.
+- Tự xoá khi đóng trình duyệt.
 - Mặc định không cho content script đọc. Extension này cũng không có content script nào.
 
 **Đây là đánh đổi có chủ ý.** Service worker của Manifest V3 bị kill bất kỳ lúc nào, nên giữ `CryptoKey`
@@ -75,21 +75,27 @@ chừa đường kia thì lớp này không có tác dụng gì.
 **Cố ý không có tính năng xoá vault sau N lần sai.** Khi chưa có export backup mã hoá, tính năng đó biến một
 lần con nghịch bàn phím thành mất vĩnh viễn mọi tài khoản 2FA. Sẽ cân nhắc lại sau khi có đường sao lưu.
 
-## Tắt lớp master password
+## Lớp master password: mặc định và cách tắt
 
-Cài đặt có tuỳ chọn tắt hẳn master password. Đây là tính năng tiện lợi có đánh đổi rõ ràng, không phải một mức
-bảo mật khác.
+**Từ bản 1.2.0, extension cài xong là dùng được ngay và chưa đặt master password.** Đây là quyết định về trải
+nghiệm, không phải về bảo mật: chặn người mới bằng một màn đặt mật khẩu làm phần lớn họ bỏ ngang hoặc đặt đại
+một mật khẩu yếu rồi quên. Trạng thái đang ở đâu được nói rõ trong Cài đặt, và bật lớp mật khẩu chỉ mất một
+biểu mẫu.
 
-Khi tắt:
+Ai cần bảo vệ thật thì vào **Cài đặt => Master password => Bật master password** ngay sau khi cài. Toàn bộ
+account giữ nguyên, chỉ có DEK được bọc lại bằng KEK dẫn xuất từ mật khẩu mới.
+
+Khi chưa đặt (hoặc đã tắt) master password:
 
 - DEK được bọc lại bằng một khoá ngẫu nhiên 32 byte nằm trong `chrome.storage.local` (`devicekey_v1`), AAD
   `dek-wrap-open`. Vault vẫn là ciphertext trên đĩa, đúng bất biến "không có seed dạng plaintext", **nhưng**
-  khoá nằm ngay cạnh dữ liệu. Ai đọc được profile Chrome thì đọc được seed. Coi như không có mã hoá.
-- Bản bọc bằng mật khẩu và bản bọc bằng vân tay bị xoá khỏi bản ghi. Không còn mật khẩu cũ nằm lay lắt.
+  khoá nằm ngay cạnh dữ liệu. Ai đọc được profile trình duyệt thì đọc được seed. Coi như không có mã hoá.
+- Bản bọc bằng mật khẩu và bản bọc bằng vân tay không tồn tại (vault mới) hoặc bị xoá khỏi bản ghi (vừa tắt).
+  Không còn mật khẩu cũ nằm lay lắt.
 - Auto-lock ngừng hẳn: khoá xong vault sẽ tự mở lại ngay, nên UI ẩn luôn nút khoá và các mục liên quan.
 
-Bật lại yêu cầu đặt mật khẩu mới từ đầu: DEK được bọc lại bằng KEK mới, `devicekey_v1` bị xoá khỏi đĩa. Toàn bộ
-account giữ nguyên vì DEK không đổi.
+Bật (hoặc bật lại) yêu cầu đặt mật khẩu mới từ đầu: DEK được bọc lại bằng KEK mới, `devicekey_v1` bị xoá khỏi
+đĩa. Toàn bộ account giữ nguyên vì DEK không đổi.
 
 Trường `protection` trong bản ghi vault là phần thêm vào, không đổi định dạng cũ: bản ghi thiếu trường này được
 đọc là `password`, nên không cần tăng `SCHEMA_VERSION` và vault cũ vẫn giải mã bình thường.
@@ -148,7 +154,7 @@ Nói thẳng để bạn tự quyết định:
 1. **Malware đang chạy với quyền của bạn khi vault đang mở.** Đọc được RAM hoặc `chrome.storage.session` là lấy
    được DEK. Không có phần mềm nào chạy trong trình duyệt chống được việc này.
 2. **Keylogger.** Ghi được master password lúc bạn gõ.
-3. **Máy đã bị root/jailbreak hoặc profile Chrome bị người khác dùng chung khi đang mở khoá.**
+3. **Máy đã bị root/jailbreak hoặc profile trình duyệt bị người khác dùng chung khi đang mở khoá.**
 4. **Master password yếu.** 600k vòng PBKDF2 làm chậm việc dò, không làm nó bất khả thi. Mật khẩu 8 ký tự thường
    vẫn dò ra. Dùng cụm từ dài.
 5. **Phishing.** Extension không biết bạn đang nhập mã vào trang thật hay trang giả.

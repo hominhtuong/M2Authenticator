@@ -7,8 +7,9 @@
  * không giữ biến toàn cục.
  */
 
-import { ALARMS, LOCAL_KEYS, SESSION_KEYS, sessionGet, sessionRemove } from '../lib/storage.js';
+import { ALARMS, SESSION_KEYS, sessionGet, sessionRemove } from '../lib/storage.js';
 import { MSG, OFFSCREEN_PATH } from '../lib/messages.js';
+import { ensureVault } from '../lib/vault.js';
 
 const CLIPBOARD_PENDING_KEY = 'clipboardPending';
 
@@ -28,7 +29,7 @@ async function handleAutoLockAlarm() {
     if (!stored[SESSION_KEYS.DEK]) return;
 
     const lockAt = stored[SESSION_KEYS.LOCK_AT];
-    if (!lockAt) return; // 0 phút = chỉ khoá khi đóng Chrome
+    if (!lockAt) return; // 0 phút = chỉ khoá khi đóng trình duyệt
 
     const remainingMs = lockAt - Date.now();
     if (remainingMs <= 0) {
@@ -139,12 +140,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 chrome.runtime.onInstalled.addListener(({ reason }) => {
     if (reason !== 'install' && reason !== 'update') return;
 
-    // Chưa có vault thì dẫn thẳng user qua bước tạo master password.
-    chrome.storage.local.get(LOCAL_KEYS.VAULT).then((stored) => {
-        if (!stored[LOCAL_KEYS.VAULT]) {
-            chrome.tabs.create({ url: chrome.runtime.getURL('unlock/unlock.html?setup=1') });
-        }
-    });
+    // Cài xong là dùng được ngay: dựng sẵn vault không master password, im lặng.
+    // Cố ý KHÔNG mở tab nào - lần cài đầu không được cướp màn hình của user.
+    ensureVault();
 });
 
 // Chrome khởi động lại: session storage đã trống sẵn, chỉ cần dọn alarm treo.

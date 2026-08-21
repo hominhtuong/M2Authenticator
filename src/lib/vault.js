@@ -199,7 +199,7 @@ async function storeSessionDek(dekBytes) {
 
 function computeLockAt(autoLockMinutes) {
     const minutes = Number(autoLockMinutes);
-    if (!Number.isFinite(minutes) || minutes <= 0) return null; // 0 = chỉ khoá khi đóng Chrome
+    if (!Number.isFinite(minutes) || minutes <= 0) return null; // 0 = chỉ khoá khi đóng trình duyệt
     return Date.now() + minutes * 60_000;
 }
 
@@ -311,6 +311,53 @@ export async function initialize(password) {
     await clearFailures();
     await storeSessionDek(dekBytes);
     wipe(dekBytes);
+}
+
+/**
+ * Tạo vault không đặt master password, dùng cho lần cài đầu.
+ *
+ * Chủ ý: cài xong là dùng được ngay, không chặn người mới bằng một màn đặt mật khẩu. Vault vẫn là
+ * ciphertext trên đĩa nhưng khoá nằm cạnh dữ liệu, nên đây là tiện lợi chứ không phải bảo vệ - user
+ * bật lớp mật khẩu bất cứ lúc nào trong Cài đặt, và UI phải nói rõ đang ở trạng thái nào.
+ */
+export async function initializeOpen() {
+    if (await isInitialized()) fail('error.vaultAlreadyExists');
+
+    const dekBytes = generateDekBytes();
+    const deviceKeyBytes = generateDekBytes();
+    const deviceKey = await importDek(deviceKeyBytes);
+
+    const dek = await importDek(dekBytes);
+    const data = await aesGcmEncrypt(
+        dek,
+        utf8(JSON.stringify({ accounts: [] })),
+        aadFor('vault-data', SCHEMA_VERSION),
+    );
+
+    await localSet({ [LOCAL_KEYS.DEVICE_KEY]: toBase64(deviceKeyBytes) });
+    await writeVaultRecord({
+        schema: SCHEMA_VERSION,
+        protection: Protection.NONE,
+        kdf: null,
+        passwordWrap: null,
+        openWrap: await aesGcmEncrypt(deviceKey, dekBytes, aadFor('dek-wrap-open', SCHEMA_VERSION)),
+        biometric: null,
+        data,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+    });
+
+    await clearFailures();
+    await storeSessionDek(dekBytes);
+    wipe(deviceKeyBytes);
+    wipe(dekBytes);
+}
+
+/** Có vault rồi thì thôi, chưa có thì dựng bản mở sẵn. Trả về true nếu vừa tạo mới. */
+export async function ensureVault() {
+    if (await isInitialized()) return false;
+    await initializeOpen();
+    return true;
 }
 
 // -------------------------------------------------------------- mở khoá
