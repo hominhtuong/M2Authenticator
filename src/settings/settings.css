@@ -129,3 +129,49 @@
 .facts-details[open] summary {
     margin-bottom: 10px;
 }
+
+/* --------------------------------------------------------- có gì mới */
+
+.whatsnew {
+    padding: 4px 0 8px;
+}
+
+.whatsnew__lead {
+    margin: 0 0 14px;
+    color: var(--text-muted);
+    font-size: 13px;
+    line-height: 1.55;
+}
+
+.whatsnew__entry + .whatsnew__entry {
+    margin-top: 14px;
+}
+
+.whatsnew__version {
+    margin-bottom: 4px;
+    color: var(--text-faint);
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+}
+
+.whatsnew__list {
+    margin: 0 0 16px;
+    padding-left: 18px;
+    color: var(--text-muted);
+    font-size: 13px;
+    line-height: 1.7;
+}
+
+.whatsnew__list li + li {
+    margin-top: 6px;
+}
+
+/* Bản nhúng trong thẻ Phiên bản: không có tiêu đề riêng, bám sát nút vừa bấm. */
+.whatsnew--inline {
+    padding: 0;
+    margin-top: 14px;
+}
+
+.whatsnew--inline .whatsnew__list {
+    margin-bottom: 0;
+}

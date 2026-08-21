@@ -7,6 +7,8 @@ import { openExtensionWindow } from '../lib/windows.js';
 import { buildLanguageSwitcher, initI18n, onLanguageChange, t } from '../lib/i18n.js';
 import { createUnlockView } from '../unlock/unlock-view.js';
 import { createSettingsView } from '../settings/settings-view.js';
+import { buildWhatsNewPanel } from '../settings/whatsnew-view.js';
+import { currentVersion } from '../lib/version.js';
 import * as vault from '../lib/vault.js';
 
 const RING_RADIUS = 12;
@@ -22,6 +24,8 @@ const ui = {
     settingsTitle: $('#settingsTitle'),
     settingsBtn: $('#settingsBtn'),
     settingsPanel: $('#settingsPanel'),
+    whatsnewPanel: $('#whatsnewPanel'),
+    versionLabel: $('#versionLabel'),
     lockBtn: $('#lockBtn'),
     addBtn: $('#addBtn'),
     sortBtn: $('#sortBtn'),
@@ -33,7 +37,8 @@ let settings = { ...vault.DEFAULT_SETTINGS };
 let accounts = [];
 let sorting = false;
 let tickTimer = null;
-let settingsOpen = false;
+/** 'list' | 'settings' | 'whatsnew' */
+let view = 'list';
 /** Dựng một lần rồi dùng lại, để mở đi mở lại cài đặt không mất trạng thái đang gõ dở. */
 let settingsView = null;
 let unlockView = null;
@@ -78,27 +83,35 @@ function mountUnlockView() {
 async function showLocked() {
     stopTicking();
     rendered.clear();
-    closeSettings();
+    view = 'list';
     showScreen('locked');
     await mountUnlockView().start();
 }
 
 // ------------------------------------------------------------- cài đặt
 
-function paintSettingsMode() {
-    document.body.dataset.view = settingsOpen ? 'settings' : 'list';
+function paintView() {
+    const onList = view === 'list';
+    document.body.dataset.view = view;
 
-    show(ui.search, !settingsOpen);
-    show(ui.addBtn, !settingsOpen);
-    show(ui.sortBtn, !settingsOpen);
-    show(ui.settingsTitle, settingsOpen);
-    show(ui.settingsPanel, settingsOpen);
-    show(ui.list, !settingsOpen);
-    show(ui.emptyState, !settingsOpen && accounts.length === 0);
+    show(ui.search, onList);
+    show(ui.addBtn, onList);
+    show(ui.sortBtn, onList);
+    show(ui.list, onList);
+    show(ui.emptyState, onList && accounts.length === 0);
+
+    show(ui.settingsTitle, !onList);
+    ui.settingsTitle.textContent = t(
+        view === 'whatsnew' ? 'whatsnew.title' : 'options.title',
+        { version: currentVersion() },
+    );
+
+    show(ui.settingsPanel, view === 'settings');
+    show(ui.whatsnewPanel, view === 'whatsnew');
 
     // Bánh răng giữ nguyên icon, chỉ sáng lên khi đang ở trong cài đặt.
-    ui.settingsBtn.dataset.active = String(settingsOpen);
-    ui.settingsBtn.setAttribute('aria-pressed', String(settingsOpen));
+    ui.settingsBtn.dataset.active = String(view === 'settings');
+    ui.settingsBtn.setAttribute('aria-pressed', String(view === 'settings'));
 }
 
 async function openSettings() {
@@ -115,16 +128,36 @@ async function openSettings() {
         ui.settingsPanel.append(settingsView.root);
     }
 
-    settingsOpen = true;
-    paintSettingsMode();
+    view = 'settings';
+    paintView();
     ui.settingsPanel.scrollTop = 0;
     await settingsView.refresh();
 }
 
-function closeSettings() {
-    if (!settingsOpen) return;
-    settingsOpen = false;
-    paintSettingsMode();
+function showList() {
+    view = 'list';
+    paintView();
+}
+
+// ------------------------------------------------------------ có gì mới
+
+/** Chỉ hiện sau khi user vừa nâng cấp lên bản có ghi chú mà họ chưa xem. */
+function openWhatsNew() {
+    const panel = buildWhatsNewPanel({
+        lastSeenVersion: settings.lastSeenVersion,
+        onDismiss: async () => {
+            settings = await vault.saveSettings({ lastSeenVersion: currentVersion() });
+            clear(ui.whatsnewPanel);
+            showList();
+        },
+    });
+    if (!panel) return false;
+
+    clear(ui.whatsnewPanel);
+    ui.whatsnewPanel.append(panel);
+    view = 'whatsnew';
+    paintView();
+    return true;
 }
 
 /** Không còn lớp master password thì nút khoá không có tác dụng gì, ẩn hẳn cho khỏi gây hiểu nhầm. */
@@ -141,7 +174,7 @@ ui.lockBtn.addEventListener('click', async () => {
 });
 
 ui.settingsBtn.addEventListener('click', () => {
-    if (settingsOpen) closeSettings();
+    if (view === 'settings') showList();
     else openSettings();
 });
 
@@ -361,7 +394,7 @@ function renderList() {
     rendered.clear();
     clear(ui.list);
 
-    show(ui.emptyState, !settingsOpen && accounts.length === 0);
+    show(ui.emptyState, view === 'list' && accounts.length === 0);
 
     if (accounts.length > 0 && visible.length === 0) {
         ui.list.append(el('p', { class: 'empty__text', text: t('popup.noMatch') }));
@@ -424,12 +457,17 @@ async function enterVault() {
     settings = await vault.getSettings();
     accounts = await vault.listAccounts();
     showScreen('vault');
+    ui.versionLabel.textContent = t('popup.version', { version: currentVersion() });
     await paintLockButton();
-    paintSettingsMode();
+
+    // Vừa nâng cấp thì chào bằng màn "Có gì mới" thay vì danh sách, một lần duy nhất.
+    if (view === 'list') openWhatsNew();
+    paintView();
+
     renderList();
     startTicking();
     await vault.touchActivity();
-    if (!settingsOpen) ui.search.focus();
+    if (view === 'list') ui.search.focus();
 }
 
 async function boot() {
@@ -441,7 +479,11 @@ async function boot() {
     // Đổi ngôn ngữ phải vẽ lại danh sách vì nhãn nút và tên mặc định dựng bằng JS.
     onLanguageChange(async () => {
         settings = await vault.getSettings();
-        if (!ui.screens.vault.hidden) renderList();
+        ui.versionLabel.textContent = t('popup.version', { version: currentVersion() });
+        if (!ui.screens.vault.hidden) {
+            paintView();
+            renderList();
+        }
     });
 
     // Lần đầu mở mà chưa có vault (mới cài, hoặc vừa xoá sạch): dựng bản không master password

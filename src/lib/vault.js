@@ -35,6 +35,7 @@ import {
     sessionSet,
 } from './storage.js';
 import { normalizeBase32, isValidBase32 } from './base32.js';
+import { currentVersion } from './version.js';
 import { AppError, fail } from './errors.js';
 import { normalizeAlgorithm, DEFAULT_ALGORITHM, DEFAULT_DIGITS, DEFAULT_PERIOD } from './totp.js';
 import { dedupeKey } from './otpauth.js';
@@ -49,6 +50,8 @@ export const VaultState = {
 
 export const DEFAULT_SETTINGS = {
     language: 'en',
+    /** Bản đã xem màn "Có gì mới". Rỗng nghĩa là chưa xem lần nào. */
+    lastSeenVersion: '',
     autoLockMinutes: 5,
     clipboardClearSeconds: 20,
     hideCodes: false,
@@ -309,6 +312,7 @@ export async function initialize(password) {
     });
 
     await clearFailures();
+    await saveSettings({ lastSeenVersion: currentVersion() });
     await storeSessionDek(dekBytes);
     wipe(dekBytes);
 }
@@ -348,6 +352,7 @@ export async function initializeOpen() {
     });
 
     await clearFailures();
+    await saveSettings({ lastSeenVersion: currentVersion() });
     await storeSessionDek(dekBytes);
     wipe(deviceKeyBytes);
     wipe(dekBytes);

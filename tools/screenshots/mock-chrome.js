@@ -82,6 +82,8 @@
 
         runtime: {
             id: 'screenshotharnessscreenshotharnessxy',
+            // build-harness.mjs thay chỗ này bằng version thật trong src/manifest.json.
+            getManifest: () => ({ version: '__HARNESS_VERSION__' }),
             getURL: (path) => `/${String(path).replace(/^\/+/, '')}`,
             sendMessage: async () => ({ ok: true }),
             getContexts: async () => [],
@@ -97,6 +99,8 @@
         },
 
         tabs: { async create() {} },
+        // Harness chạy như bản load unpacked, nên khai đúng kiểu cài đó.
+        management: { async getSelf() { return { installType: 'development' }; } },
         windows: { async create() {}, async getCurrent() { return { left: 0, top: 0, width: 1440, height: 900 }; } },
         offscreen: { async createDocument() {}, async closeDocument() {} },
     };

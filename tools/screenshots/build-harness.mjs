@@ -96,6 +96,11 @@ for (const name of ['mock-chrome.js', 'seed.js', 'seeder.html', 'showcase.html',
     cpSync(join(HERE, name), join(OUT, name));
 }
 
+// Mock phải trả về đúng version đang dựng, nếu không màn "Có gì mới" và nhãn phiên bản sẽ sai.
+const harnessVersion = JSON.parse(readFileSync(join(SRC, 'manifest.json'), 'utf8')).version;
+const mockPath = join(OUT, 'mock-chrome.js');
+writeFileSync(mockPath, readFileSync(mockPath, 'utf8').replace('__HARNESS_VERSION__', harnessVersion));
+
 writeFileSync(
     join(OUT, 'demo-data.js'),
     `// Sinh tự động bởi tools/screenshots/build-harness.mjs. Đừng sửa tay.\n` +

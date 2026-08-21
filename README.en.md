@@ -37,6 +37,8 @@ Full history in [CHANGELOG.md](CHANGELOG.md).
   The scanning window now anchors to the top-right of the browser window, roughly where the popup was.
 - **Stricter brute-force protection** (since 1.1.0): 5 free attempts, then 15s doubling each time up to a
   30 minute cap, with both the password field and the fingerprint button disabled while you wait.
+- **Version and updates are visible.** The popup footer shows the version, Settings has a Version card with a
+  check-for-updates button, and after each upgrade the popup opens on a short what-is-new summary.
 
 Existing vaults need nothing on upgrade: the storage format is unchanged, there is no migration step, and any
 password or fingerprint you already set keeps working. The new default applies to fresh installs only.
@@ -66,7 +68,7 @@ unzipping anything.
 ```bash
 git clone https://github.com/hominhtuong/M2Authenticator.git
 cd M2Authenticator
-npm test        # 53 tests, no dependencies to install
+npm test        # 60 tests, no dependencies to install
 npm run build   # produces dist/m2-authenticator-<version>.zip
 ```
 
@@ -319,7 +321,9 @@ src/                    the extension itself (load unpacked / zip this folder)
     qr.js               QR reading via BarcodeDetector
     webauthn.js         PRF registration and assertion
     clipboard.js        copy with a scheduled wipe
-    windows.js          opens extension pages as centred windows
+    windows.js          opens a separate window anchored where the popup was
+    version.js          running version, install type, update check
+    release-notes.js    what-is-new content per release
     dom.js              DOM helpers (no API here accepts an HTML string)
     messages.js         message constants
     errors.js           AppError carrying a code instead of a sentence
@@ -330,7 +334,7 @@ src/                    the extension itself (load unpacked / zip this folder)
   offscreen/            offscreen document used only to overwrite the clipboard
   popup/                code list, search, reordering, settings panel
   unlock/               shared unlock view + the create-master-password page (own window, needed for WebAuthn)
-  settings/             settings screen shared by the popup and the options page
+  settings/             settings and what-is-new screens shared by the popup and the options page
   import/               QR scanning and the review step before saving
   options/              full-size shell for the settings screen (where fingerprint enrolment can run)
 scripts/
@@ -355,7 +359,7 @@ CHANGELOG.md            what changed in each release
 ## Development
 
 ```bash
-npm test                  # 53 tests, including the official RFC 6238 / RFC 4226 / RFC 4648 vectors
+npm test                  # 60 tests, including the official RFC 6238 / RFC 4226 / RFC 4648 vectors
 npm run build             # checks, then packages dist/m2-authenticator-<version>.zip + dist/unpacked/
 npm run screenshots       # builds the harness used to retake store screenshots
 npm run release:github    # tag + GitHub release with the zip attached
@@ -388,7 +392,7 @@ public issue with exploit details.
 ## Status
 
 The current release is **1.2.0**, live on the Chrome Web Store. The algorithmic core (TOTP/HOTP, Base32,
-protobuf, AES-GCM, PBKDF2, HKDF) and the brute-force policy are covered by 53 automated tests, including the
+protobuf, AES-GCM, PBKDF2, HKDF) and the brute-force policy are covered by 60 automated tests, including the
 official RFC 6238, RFC 4226 and RFC 4648 vectors, plus tests that keep the two translation catalogues in sync.
 
 Known gaps, and they are known:

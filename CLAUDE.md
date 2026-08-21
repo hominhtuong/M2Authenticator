@@ -32,6 +32,7 @@ src/                  Extension thật (load unpacked trỏ vào đây)
   unlock/             unlock-view.js: khung mở khoá dùng chung cho popup và cửa sổ riêng
                       unlock.html: cửa sổ riêng, bắt buộc cho ceremony WebAuthn
   settings/           settings-view.js: màn cài đặt dùng chung cho popup và options
+                      whatsnew-view.js: màn "Có gì mới" sau khi cập nhật
   import/             Màn review khi nhập hàng loạt
   options/            Vỏ full-size của màn cài đặt (nơi đăng ký vân tay chạy được)
 scripts/build.mjs     Đóng gói zip để nộp store
@@ -71,6 +72,8 @@ Khi mở khoá, DEK dạng raw nằm trong `chrome.storage.session` (bộ nhớ,
 - Sửa `lib/totp.js`, `lib/base32.js`, `lib/protobuf.js`, `lib/migration.js` thì chạy `npm test` trước khi báo xong.
 - Màn mở khoá và màn cài đặt chỉ có MỘT bản dựng: sửa `unlock/unlock-view.js` hoặc `settings/settings-view.js`,
   đừng viết lại markup riêng cho popup. Trước đây mỗi nơi một bản nên giao diện lệch nhau thấy rõ.
+- Phát hành bản mới thì thêm một mục ở đầu `RELEASE_NOTES` trong `lib/release-notes.js`, kèm khoá dịch ở cả
+  hai bảng. Bỏ qua bước này thì user cập nhật xong không thấy màn "Có gì mới".
 - Không viết chữ hiển thị thẳng vào code. HTML dùng `data-i18n`, JS dùng `t()`, `lib/` ném `fail('error.x')`
   chứ không tự dịch. Thêm khoá phải thêm ở cả `locales/en.js` lẫn `locales/vi.js`.
 

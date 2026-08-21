@@ -13,6 +13,8 @@ import { openExtensionWindow } from '../lib/windows.js';
 import { buildLanguageSwitcher, describeError, onLanguageChange, t } from '../lib/i18n.js';
 import * as vault from '../lib/vault.js';
 import { isPlatformAuthenticatorAvailable, registerBiometric, webAuthnErrorCode } from '../lib/webauthn.js';
+import { InstallType, UpdateStatus, checkForUpdate, currentVersion, getInstallType } from '../lib/version.js';
+import { buildNotesList } from './whatsnew-view.js';
 
 const FACT_KEYS = ['encryption', 'kdf', 'locked', 'unlocked', 'network', 'sync'];
 
@@ -100,6 +102,8 @@ export function createSettingsView({ compact = false, onSettingsChanged = null, 
     let biometricEnrolled = false;
     let biometricAvailable = false;
     let enablingPassword = false;
+    let installType = InstallType.UNKNOWN;
+    let showingNotes = false;
     let disposed = false;
 
     // ---------------------------------------------------------------- dữ liệu
@@ -110,6 +114,7 @@ export function createSettingsView({ compact = false, onSettingsChanged = null, 
         unlocked = (await vault.getState()) === vault.VaultState.UNLOCKED;
         biometricEnrolled = await vault.hasBiometric();
         biometricAvailable = await isPlatformAuthenticatorAvailable();
+        installType = await getInstallType();
     }
 
     async function save(changes, messageKey) {
@@ -503,6 +508,75 @@ export function createSettingsView({ compact = false, onSettingsChanged = null, 
         return card('facts', [details]);
     }
 
+    // ---------------------------------------------------------- phiên bản
+
+    function aboutCard() {
+        const updateKey =
+            installType === InstallType.DEVELOPMENT
+                ? 'options.about.autoUpdateDev'
+                : installType === InstallType.STORE
+                  ? 'options.about.autoUpdateStore'
+                  : 'options.about.autoUpdateUnknown';
+
+        const alert = el('div', { class: 'alert', hidden: true });
+
+        function setResult(messageKey, variant) {
+            alert.className = `alert alert--${variant}`;
+            alert.textContent = t(messageKey);
+            show(alert, true);
+        }
+
+        const check = el('button', {
+            class: 'btn',
+            type: 'button',
+            text: t('options.about.check'),
+        });
+
+        check.addEventListener('click', async () => {
+            check.disabled = true;
+            check.textContent = t('options.about.checking');
+            show(alert, false);
+
+            const result = await checkForUpdate();
+
+            if (result.status === UpdateStatus.AVAILABLE) setResult('options.about.updateFound', 'success');
+            else if (result.status === UpdateStatus.UP_TO_DATE) setResult('options.about.upToDate', 'info');
+            else if (result.status === UpdateStatus.THROTTLED) setResult('options.about.throttled', 'warning');
+            else setResult('options.about.checkUnsupported', 'warning');
+
+            check.disabled = false;
+            check.textContent = t('options.about.check');
+        });
+
+        const notesSlot = el('div', { class: 'whatsnew whatsnew--inline', hidden: !showingNotes });
+        if (showingNotes) {
+            const list = buildNotesList('');
+            notesSlot.append(list ?? el('p', { class: 'card__note', text: t('whatsnew.empty') }));
+        }
+
+        const notesBtn = el('button', {
+            class: 'btn',
+            type: 'button',
+            text: t(showingNotes ? 'options.about.hideNotes' : 'options.about.whatsNew'),
+        });
+        notesBtn.addEventListener('click', () => {
+            showingNotes = !showingNotes;
+            render();
+        });
+
+        return card('about', [
+            el('h2', { text: t('options.about.title') }),
+            el('div', {
+                class: 'status-line',
+                text: t('options.about.version', { version: currentVersion() }),
+            }),
+            el('p', { class: 'card__lead', text: t(updateKey) }),
+            el('div', { class: 'row-actions' }, [check, notesBtn]),
+            alert,
+            notesSlot,
+        ]);
+    }
+
     // ----------------------------------------------------------- xoá vault
 
     function dangerCard() {
@@ -551,6 +625,7 @@ export function createSettingsView({ compact = false, onSettingsChanged = null, 
             biometricCard(),
             changePasswordCard(),
             factsCard(),
+            aboutCard(),
             dangerCard(),
         ]) {
             if (section) root.append(section);

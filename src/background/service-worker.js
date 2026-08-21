@@ -9,15 +9,43 @@
 
 import { ALARMS, SESSION_KEYS, sessionGet, sessionRemove } from '../lib/storage.js';
 import { MSG, OFFSCREEN_PATH } from '../lib/messages.js';
-import { ensureVault } from '../lib/vault.js';
+import { Protection, ensureVault, getProtection } from '../lib/vault.js';
 
 const CLIPBOARD_PENDING_KEY = 'clipboardPending';
+const PENDING_UPDATE_KEY = 'pendingUpdate';
 
 // -------------------------------------------------------------- auto-lock
 
 async function lockVault() {
     await sessionRemove([SESSION_KEYS.DEK, SESSION_KEYS.LOCK_AT]);
     await chrome.alarms.clear(ALARMS.AUTO_LOCK);
+    await applyPendingUpdate();
+}
+
+// ----------------------------------------------------------- cập nhật
+
+/**
+ * Áp bản mới khi việc đó không làm phiền ai.
+ *
+ * Đăng ký onUpdateAvailable nghĩa là trình duyệt chờ chính chúng ta gọi reload() thay vì tự cài,
+ * nên phải chủ động quyết định. reload() xoá sạch chrome.storage.session, tức là vault đang mở sẽ
+ * khoá lại và user phải nhập mật khẩu giữa chừng. Vì vậy:
+ *
+ *   - vault không đặt master password  => reload ngay, user không mất gì
+ *   - vault đang khoá                  => reload ngay, đằng nào cũng phải mở khoá
+ *   - vault đang mở                    => hoãn, chờ tới lúc khoá (hoặc trình duyệt khởi động lại)
+ */
+async function applyPendingUpdate() {
+    const stored = await chrome.storage.session.get(PENDING_UPDATE_KEY);
+    if (!stored[PENDING_UPDATE_KEY]) return;
+
+    if ((await getProtection()) === Protection.NONE) {
+        chrome.runtime.reload();
+        return;
+    }
+
+    const session = await sessionGet([SESSION_KEYS.DEK]);
+    if (!session[SESSION_KEYS.DEK]) chrome.runtime.reload();
 }
 
 /**
@@ -135,6 +163,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         default:
             return false;
     }
+});
+
+chrome.runtime.onUpdateAvailable.addListener(() => {
+    chrome.storage.session.set({ [PENDING_UPDATE_KEY]: true }).then(applyPendingUpdate);
 });
 
 chrome.runtime.onInstalled.addListener(({ reason }) => {

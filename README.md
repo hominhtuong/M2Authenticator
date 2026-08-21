@@ -36,6 +36,8 @@ Lịch sử đầy đủ ở [CHANGELOG.md](CHANGELOG.md).
   vân tay nay bám vào góc phải trên của cửa sổ trình duyệt, gần đúng chỗ popup vừa đứng.
 - **Chống dò mật khẩu chặt hơn** (từ 1.1.0): 5 lần sai đầu không phạt, từ lần thứ 6 chờ 15s rồi gấp đôi mỗi
   lần, trần 30 phút, khoá cả ô mật khẩu lẫn nút vân tay trong lúc chờ.
+- **Thấy được phiên bản và cập nhật.** Chân popup ghi version, Cài đặt có thẻ Phiên bản kèm nút kiểm tra
+  cập nhật, và sau mỗi lần nâng cấp popup chào bằng màn "Có gì mới".
 
 Vault đang có không cần làm gì khi cập nhật: định dạng lưu trữ giữ nguyên, không có bước migrate, mật khẩu và
 vân tay đã đặt vẫn dùng bình thường. Mặc định mới chỉ áp cho máy cài lần đầu.
@@ -64,7 +66,7 @@ Nếu tự build từ mã nguồn, `npm run build` tạo sẵn `dist/unpacked/` 
 ```bash
 git clone https://github.com/hominhtuong/M2Authenticator.git
 cd M2Authenticator
-npm test        # 53 test, không cần cài dependency nào
+npm test        # 60 test, không cần cài dependency nào
 npm run build   # tạo dist/m2-authenticator-<version>.zip
 ```
 
@@ -305,7 +307,9 @@ src/                    extension (thư mục để load unpacked / đem đi né
     qr.js               đọc QR bằng BarcodeDetector
     webauthn.js         đăng ký / xác thực PRF
     clipboard.js        copy kèm hẹn giờ xoá
-    windows.js          mở trang của extension thành cửa sổ canh giữa màn hình
+    windows.js          mở cửa sổ riêng, neo vào đúng chỗ popup vừa đứng
+    version.js          version đang chạy, kiểu cài đặt, kiểm tra cập nhật
+    release-notes.js    nội dung "Có gì mới" theo từng bản
     dom.js              helper dựng DOM (không có API nào nhận HTML string)
     messages.js         hằng số message
     errors.js           AppError mang mã lỗi thay vì câu chữ
@@ -316,7 +320,7 @@ src/                    extension (thư mục để load unpacked / đem đi né
   offscreen/            tài liệu offscreen chỉ để ghi đè clipboard
   popup/                danh sách mã, tìm kiếm, sắp xếp, panel cài đặt
   unlock/               khung mở khoá dùng chung + trang tạo master password (cửa sổ riêng, cần cho WebAuthn)
-  settings/             màn cài đặt dùng chung cho popup và trang options
+  settings/             màn cài đặt và màn "Có gì mới" dùng chung cho popup và trang options
   import/               quét QR và xem lại trước khi lưu hàng loạt
   options/              vỏ full-size của màn cài đặt (nơi chạy được ceremony đăng ký vân tay)
 scripts/
@@ -341,7 +345,7 @@ CHANGELOG.md            thay đổi của từng bản phát hành
 ## Phát triển
 
 ```bash
-npm test                  # 53 test, gồm vector chính thức RFC 6238 / RFC 4226 / RFC 4648
+npm test                  # 60 test, gồm vector chính thức RFC 6238 / RFC 4226 / RFC 4648
 npm run build             # kiểm tra rồi đóng gói dist/m2-authenticator-<version>.zip + dist/unpacked/
 npm run screenshots       # dựng harness để chụp lại ảnh cho store
 npm run release:github    # tag + tạo GitHub release, đính kèm zip
@@ -374,7 +378,7 @@ với chi tiết khai thác được.
 ## Trạng thái
 
 Bản hiện tại là **1.2.0**, đã lên Chrome Web Store. Phần thuật toán (TOTP/HOTP, Base32, protobuf, AES-GCM,
-PBKDF2, HKDF) và chính sách chống dò mật khẩu có 53 test tự động phủ, gồm vector chính thức của RFC 6238,
+PBKDF2, HKDF) và chính sách chống dò mật khẩu có 60 test tự động phủ, gồm vector chính thức của RFC 6238,
 RFC 4226 và RFC 4648, cùng các test giữ cho hai bảng dịch không lệch nhau.
 
 Còn thiếu, và biết là thiếu:
