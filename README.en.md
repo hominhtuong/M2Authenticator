@@ -15,7 +15,7 @@ The interface ships in **English and Vietnamese**, switched with a flag button i
 needed.
 
 [![Chrome Web Store](https://img.shields.io/badge/Chrome%20Web%20Store-install-4285F4?logo=googlechrome&logoColor=white)](https://chromewebstore.google.com/detail/lkfhkcegjopcbkoafepfmmajlkbnglfh)
-![Version](https://img.shields.io/badge/version-1.2.0-informational)
+![Version](https://img.shields.io/badge/version-1.3.0-informational)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 ![Manifest](https://img.shields.io/badge/manifest-v3-brightgreen)
 ![Chrome](https://img.shields.io/badge/chrome-116%2B-orange)
@@ -24,21 +24,22 @@ needed.
 
 ---
 
-## What is new in 1.2.0
+## What is new in 1.3.0
 
 Full history in [CHANGELOG.md](CHANGELOG.md).
 
-- **Usable the moment it is installed.** No create-a-master-password wall for newcomers. A fresh vault starts
-  with no password; anyone who wants real protection turns it on in Settings and keeps every account. The
-  trade-off is spelled out under [Turning off the master password](#turning-off-the-master-password-read-this).
+- **Version and updates are visible.** The popup footer shows the version, Settings has a Version card with a
+  check-for-updates button, and after each upgrade the popup opens on a short what-is-new summary.
+- **Usable the moment it is installed** (since 1.2.0). No create-a-master-password wall for newcomers. A fresh
+  vault starts with no password; anyone who wants real protection turns it on in Settings and keeps every
+  account. The trade-off is spelled out under
+  [Turning off the master password](#turning-off-the-master-password-read-this).
 - **Settings open inside the popup** (since 1.1.0). Click the gear and the popup grows to show settings in
   place; the gear lights up while you are in there, and clicking it again returns to your codes.
 - **One single unlock view** (since 1.1.0), so nothing shifts around when you press unlock with fingerprint.
   The scanning window now anchors to the top-right of the browser window, roughly where the popup was.
 - **Stricter brute-force protection** (since 1.1.0): 5 free attempts, then 15s doubling each time up to a
   30 minute cap, with both the password field and the fingerprint button disabled while you wait.
-- **Version and updates are visible.** The popup footer shows the version, Settings has a Version card with a
-  check-for-updates button, and after each upgrade the popup opens on a short what-is-new summary.
 
 Existing vaults need nothing on upgrade: the storage format is unchanged, there is no migration step, and any
 password or fingerprint you already set keeps working. The new default applies to fresh installs only.
@@ -391,7 +392,7 @@ public issue with exploit details.
 
 ## Status
 
-The current release is **1.2.0**, live on the Chrome Web Store. The algorithmic core (TOTP/HOTP, Base32,
+The current release is **1.3.0**, live on the Chrome Web Store. The algorithmic core (TOTP/HOTP, Base32,
 protobuf, AES-GCM, PBKDF2, HKDF) and the brute-force policy are covered by 60 automated tests, including the
 official RFC 6238, RFC 4226 and RFC 4648 vectors, plus tests that keep the two translation catalogues in sync.
 

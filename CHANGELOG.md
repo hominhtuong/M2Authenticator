@@ -9,21 +9,42 @@ _English version below each release._
 
 ---
 
-## [1.2.0] - 2026-08-21
+## [1.3.0] - 2026-08-21
 
 ### Thêm
 
-- **Hiển thị phiên bản đang chạy.** Góc trái chân popup ghi `v1.2.0`, và Cài đặt có thẻ **Phiên bản**
-  ghi đầy đủ hơn.
-- **Nút kiểm tra cập nhật** trong Cài đặt => Phiên bản. Bản cài từ Chrome Web Store vốn đã tự cập nhật
-  ngầm (trình duyệt kiểm tra lúc khởi động và vài giờ một lần, cài khi extension rảnh); nút này để hỏi
-  ngay thay vì chờ. Bản load unpacked được báo thẳng là không có nguồn cập nhật.
+- **Hiển thị phiên bản đang chạy.** Chân popup ghi `v1.3.0`, và Cài đặt có thẻ **Phiên bản** ghi đầy đủ hơn.
+- **Nút kiểm tra cập nhật** trong Cài đặt => Phiên bản. Bản cài từ Chrome Web Store vốn đã tự cập nhật ngầm
+  (trình duyệt kiểm tra lúc khởi động và vài giờ một lần, cài khi extension đang rảnh), nút này chỉ để hỏi
+  ngay thay vì chờ. Bản load unpacked được báo thẳng là không có nguồn cập nhật để hỏi.
 - **Áp bản mới sớm khi không làm phiền ai.** Service worker lắng nghe `onUpdateAvailable` và chỉ gọi
-  `chrome.runtime.reload()` khi vault không đặt master password hoặc đang khoá. Vault đang mở thì hoãn
-  lại tới lúc khoá, vì reload xoá bộ nhớ phiên và sẽ bắt nhập lại mật khẩu giữa chừng.
-- **Màn "Có gì mới".** Sau khi cập nhật, mở popup lần đầu sẽ thấy tóm tắt thay đổi, bấm "Đã hiểu" là
-  vào danh sách và không hiện lại. Xem lại bất cứ lúc nào ở Cài đặt => Phiên bản => Có gì mới. Máy mới
-  cài không thấy màn này.
+  `chrome.runtime.reload()` khi vault không đặt master password hoặc đang khoá. Vault đang mở thì hoãn tới
+  lúc khoá, vì reload xoá bộ nhớ phiên và sẽ bắt nhập lại mật khẩu giữa chừng.
+- **Màn "Có gì mới".** Sau khi cập nhật, mở popup lần đầu là thấy tóm tắt thay đổi; bấm "Đã hiểu" là vào
+  danh sách và không hiện lại. Xem lại bất cứ lúc nào ở Cài đặt => Phiên bản => Có gì mới. Máy mới cài
+  không thấy màn này.
+
+<details>
+<summary>English</summary>
+
+**Added**
+
+- **The running version is visible**: `v1.3.0` in the popup footer and a full Version card in Settings.
+- **A check-for-updates button** in Settings => Version. Store installs already update themselves in the
+  background (the browser checks at startup and every few hours, and installs while the extension is idle);
+  the button just asks right now. Unpacked development builds are told plainly that they have no update
+  channel to ask.
+- **Updates are applied early when that costs nothing.** The service worker listens for `onUpdateAvailable`
+  and only calls `chrome.runtime.reload()` when the vault has no master password or is already locked; an
+  unlocked vault defers, because reloading wipes session memory and would force a password re-entry.
+- **A what-is-new screen.** After an update the popup opens on a short summary of the changes; "Got it"
+  dismisses it for good, and Settings => Version => What is new brings it back. Fresh installs never see it.
+
+</details>
+
+---
+
+## [1.2.0] - 2026-08-21
 
 ### Thay đổi
 
@@ -56,19 +77,6 @@ _English version below each release._
   instead; clicking it again returns to the codes.
 - **Wording now says "browser" instead of "Chrome"**, since the extension also runs on Brave, Cốc Cốc, Edge and
   other Chromium builds.
-
-**Added**
-
-- **The running version is visible**: `v1.2.0` in the popup footer and a full Version card in Settings.
-- **A check-for-updates button** in Settings => Version. Store installs already update themselves in the
-  background (the browser checks at startup and every few hours, and installs while the extension is idle);
-  the button just asks right now. Unpacked development builds are told plainly that they have no update
-  channel.
-- **Updates are applied early when that costs nothing.** The service worker listens for `onUpdateAvailable`
-  and only calls `chrome.runtime.reload()` when the vault has no master password or is already locked;
-  an unlocked vault defers, because reloading wipes session memory and would force a password re-entry.
-- **A what-is-new screen.** After an update the popup opens on a short summary of the changes; "Got it"
-  dismisses it for good, and Settings => Version => What is new brings it back. Fresh installs never see it.
 
 **Fixed**
 
@@ -183,6 +191,7 @@ First public release.
 
 </details>
 
+[1.3.0]: https://github.com/hominhtuong/M2Authenticator/releases/tag/v1.3.0
 [1.2.0]: https://github.com/hominhtuong/M2Authenticator/releases/tag/v1.2.0
 [1.1.0]: https://github.com/hominhtuong/M2Authenticator/releases/tag/v1.1.0
 [1.0.0]: https://github.com/hominhtuong/M2Authenticator/releases/tag/v1.0.0

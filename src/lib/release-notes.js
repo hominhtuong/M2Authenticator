@@ -7,13 +7,21 @@
 
 export const RELEASE_NOTES = [
     {
+        version: '1.3.0',
+        keys: [
+            'whatsnew.1_3_0.version',
+            'whatsnew.1_3_0.updateCheck',
+            'whatsnew.1_3_0.autoUpdate',
+            'whatsnew.1_3_0.notes',
+        ],
+    },
+    {
         version: '1.2.0',
         keys: [
             'whatsnew.1_2_0.settings',
             'whatsnew.1_2_0.optionalPassword',
             'whatsnew.1_2_0.unlock',
             'whatsnew.1_2_0.backoff',
-            'whatsnew.1_2_0.version',
         ],
     },
 ];

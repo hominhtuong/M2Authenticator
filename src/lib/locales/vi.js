@@ -11,7 +11,6 @@ export const vi = {
 
     // ---------------------------------------------------------------- popup
 
-
     'popup.version': 'v{version}',
 
     'popup.search': 'Tìm account...',
@@ -260,16 +259,16 @@ export const vi = {
 // ---------------------------------------------------- phiên bản
     'options.about.title': 'Phiên bản',
     'options.about.version': 'M2 Authenticator {version}',
-    'options.about.autoUpdateStore': 
+    'options.about.autoUpdateStore':
         'Bản này cài từ Chrome Web Store nên trình duyệt tự cập nhật: nó kiểm tra lúc khởi động và vài giờ một lần, rồi cài bản mới khi extension đang rảnh. Bạn không phải làm gì.',
-    'options.about.autoUpdateDev': 
+    'options.about.autoUpdateDev':
         'Đây là bản load unpacked để phát triển nên không tự cập nhật. Lấy mã nguồn mới rồi bấm Reload trong chrome://extensions.',
-    'options.about.autoUpdateUnknown': 
+    'options.about.autoUpdateUnknown':
         'Không xác định được bản này cài từ đâu nên không chắc có tự cập nhật hay không.',
     'options.about.check': 'Kiểm tra cập nhật',
     'options.about.checking': 'Đang kiểm tra...',
     'options.about.upToDate': 'Bạn đang dùng bản mới nhất.',
-    'options.about.updateFound': 
+    'options.about.updateFound':
         'Có bản mới. Trình duyệt tải và cài ngầm, bản mới có hiệu lực ở lần extension khởi động lại kế tiếp.',
     'options.about.throttled': 'Kiểm tra quá nhiều lần liên tiếp. Thử lại sau vài phút.',
     'options.about.checkUnsupported': 'Bản này không có nguồn cập nhật để hỏi, bản dev thì vậy là bình thường.',
@@ -280,16 +279,22 @@ export const vi = {
     'whatsnew.lead': 'Tóm tắt những thứ đã đổi so với bản bạn đang dùng trước đó.',
     'whatsnew.dismiss': 'Đã hiểu',
     'whatsnew.empty': 'Bản này chưa có ghi chú phát hành.',
-    'whatsnew.1_2_0.settings': 
+    'whatsnew.1_3_0.version': 
+        'Chân popup ghi phiên bản đang chạy, và Cài đặt có thẻ Phiên bản ghi đầy đủ hơn.',
+    'whatsnew.1_3_0.updateCheck': 
+        'Có nút kiểm tra cập nhật, dành cho lúc bạn muốn hỏi ngay thay vì chờ trình duyệt tự kiểm tra.',
+    'whatsnew.1_3_0.autoUpdate': 
+        'Bản mới tải xong được áp ngay khi việc đó không làm phiền bạn, tức là lúc vault đang khoá hoặc không đặt master password.',
+    'whatsnew.1_3_0.notes': 
+        'Chính màn này: sau mỗi lần cập nhật, popup mở ra tóm tắt thay đổi, và bạn xem lại được từ Cài đặt.',
+    'whatsnew.1_2_0.settings':
         'Cài đặt mở ngay trong popup thay vì nhảy sang tab khác. Bánh răng sáng lên khi đang ở trong cài đặt, bấm lần nữa là về danh sách mã.',
-    'whatsnew.1_2_0.optionalPassword': 
+    'whatsnew.1_2_0.optionalPassword':
         'Master password nay là tuỳ chọn. Máy mới cài dùng được ngay, và bạn bật hoặc tắt lớp mật khẩu bất cứ lúc nào trong Cài đặt.',
-    'whatsnew.1_2_0.unlock': 
+    'whatsnew.1_2_0.unlock':
         'Popup và cửa sổ vân tay dùng chung một màn mở khoá, nên giao diện không còn nhảy chỗ khi mở khoá bằng sinh trắc.',
-    'whatsnew.1_2_0.backoff': 
+    'whatsnew.1_2_0.backoff':
         'Chống dò mật khẩu chặt hơn: 5 lần sai đầu không phạt, sau đó thời gian chờ gấp đôi mỗi lần, áp cho cả đường vân tay.',
-    'whatsnew.1_2_0.version': 
-        'Cài đặt hiển thị phiên bản đang chạy, kèm nút kiểm tra cập nhật khi bạn muốn hỏi ngay.',
 
     'options.destroy.title': 'Xoá toàn bộ dữ liệu',
     'options.destroy.lead':

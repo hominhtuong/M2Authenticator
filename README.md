@@ -14,7 +14,7 @@ một ứng dụng giữ seed 2FA thì phải kiểm chứng được.
 Giao diện có **tiếng Anh và tiếng Việt**, đổi bằng nút cờ ngay trong extension, không cần tải lại.
 
 [![Chrome Web Store](https://img.shields.io/badge/Chrome%20Web%20Store-c%C3%A0i%20ngay-4285F4?logo=googlechrome&logoColor=white)](https://chromewebstore.google.com/detail/lkfhkcegjopcbkoafepfmmajlkbnglfh)
-![Version](https://img.shields.io/badge/version-1.2.0-informational)
+![Version](https://img.shields.io/badge/version-1.3.0-informational)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 ![Manifest](https://img.shields.io/badge/manifest-v3-brightgreen)
 ![Chrome](https://img.shields.io/badge/chrome-116%2B-orange)
@@ -23,21 +23,21 @@ Giao diện có **tiếng Anh và tiếng Việt**, đổi bằng nút cờ ngay
 
 ---
 
-## Có gì mới trong 1.2.0
+## Có gì mới trong 1.3.0
 
 Lịch sử đầy đủ ở [CHANGELOG.md](CHANGELOG.md).
 
-- **Cài xong là dùng được ngay.** Không còn màn tạo master password chắn đường người mới. Vault mặc định chưa
-  đặt mật khẩu; ai cần bảo vệ thật thì bật trong Cài đặt, account giữ nguyên. Đánh đổi nói rõ ở mục
-  [Tắt master password](#tắt-master-password-đọc-kỹ).
+- **Thấy được phiên bản và cập nhật.** Chân popup ghi version, Cài đặt có thẻ Phiên bản kèm nút kiểm tra
+  cập nhật, và sau mỗi lần nâng cấp popup chào bằng màn "Có gì mới".
+- **Cài xong là dùng được ngay** (từ 1.2.0). Không còn màn tạo master password chắn đường người mới. Vault
+  mặc định chưa đặt mật khẩu; ai cần bảo vệ thật thì bật trong Cài đặt, account giữ nguyên. Đánh đổi nói rõ
+  ở mục [Tắt master password](#tắt-master-password-đọc-kỹ).
 - **Cài đặt mở ngay trong popup** (từ 1.1.0). Bấm bánh răng là popup giãn ra và hiện cài đặt tại chỗ; bánh răng
   sáng lên khi đang ở trong cài đặt, bấm lần nữa là về danh sách mã.
 - **Một khung mở khoá duy nhất** (từ 1.1.0), nên không còn cảnh giao diện lệch chỗ khi bấm vân tay. Cửa sổ quét
   vân tay nay bám vào góc phải trên của cửa sổ trình duyệt, gần đúng chỗ popup vừa đứng.
 - **Chống dò mật khẩu chặt hơn** (từ 1.1.0): 5 lần sai đầu không phạt, từ lần thứ 6 chờ 15s rồi gấp đôi mỗi
   lần, trần 30 phút, khoá cả ô mật khẩu lẫn nút vân tay trong lúc chờ.
-- **Thấy được phiên bản và cập nhật.** Chân popup ghi version, Cài đặt có thẻ Phiên bản kèm nút kiểm tra
-  cập nhật, và sau mỗi lần nâng cấp popup chào bằng màn "Có gì mới".
 
 Vault đang có không cần làm gì khi cập nhật: định dạng lưu trữ giữ nguyên, không có bước migrate, mật khẩu và
 vân tay đã đặt vẫn dùng bình thường. Mặc định mới chỉ áp cho máy cài lần đầu.
@@ -377,7 +377,7 @@ với chi tiết khai thác được.
 
 ## Trạng thái
 
-Bản hiện tại là **1.2.0**, đã lên Chrome Web Store. Phần thuật toán (TOTP/HOTP, Base32, protobuf, AES-GCM,
+Bản hiện tại là **1.3.0**, đã lên Chrome Web Store. Phần thuật toán (TOTP/HOTP, Base32, protobuf, AES-GCM,
 PBKDF2, HKDF) và chính sách chống dò mật khẩu có 60 test tự động phủ, gồm vector chính thức của RFC 6238,
 RFC 4226 và RFC 4648, cùng các test giữ cho hai bảng dịch không lệch nhau.
 

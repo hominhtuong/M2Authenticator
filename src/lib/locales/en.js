@@ -11,7 +11,6 @@ export const en = {
 
     // ---------------------------------------------------------------- popup
 
-
     'popup.version': 'v{version}',
 
     'popup.search': 'Search accounts...',
@@ -260,16 +259,16 @@ export const en = {
 // ---------------------------------------------------- phiên bản
     'options.about.title': 'Version',
     'options.about.version': 'M2 Authenticator {version}',
-    'options.about.autoUpdateStore': 
+    'options.about.autoUpdateStore':
         'Installed from the Chrome Web Store, so the browser updates it on its own: it checks at startup and every few hours, and installs the new version once the extension is idle. Nothing to do on your side.',
-    'options.about.autoUpdateDev': 
+    'options.about.autoUpdateDev':
         'This is an unpacked development build, so it never updates itself. Pull the new source and reload it from chrome://extensions.',
-    'options.about.autoUpdateUnknown': 
+    'options.about.autoUpdateUnknown':
         'Where this build came from could not be determined, so automatic updates are not guaranteed.',
     'options.about.check': 'Check for updates',
     'options.about.checking': 'Checking...',
     'options.about.upToDate': 'You are on the latest version.',
-    'options.about.updateFound': 
+    'options.about.updateFound':
         'A new version is available. The browser installs it in the background and it takes effect the next time the extension restarts.',
     'options.about.throttled': 'Checked too many times in a row. Try again in a few minutes.',
     'options.about.checkUnsupported': 'This build has no update channel to check, which is normal for a development copy.',
@@ -280,16 +279,22 @@ export const en = {
     'whatsnew.lead': 'A short list of what changed since the version you were on.',
     'whatsnew.dismiss': 'Got it',
     'whatsnew.empty': 'No release notes for this version.',
-    'whatsnew.1_2_0.settings': 
+    'whatsnew.1_3_0.version': 
+        'The popup footer shows which version you are running, and Settings has a Version card with the details.',
+    'whatsnew.1_3_0.updateCheck': 
+        'A check-for-updates button, for when you would rather ask right now than wait for the browser to check on its own.',
+    'whatsnew.1_3_0.autoUpdate': 
+        'A downloaded update is applied as soon as doing so costs you nothing, meaning while the vault is locked or has no master password.',
+    'whatsnew.1_3_0.notes': 
+        'This screen: after every update the popup opens on a short summary of what changed, and you can bring it back from Settings.',
+    'whatsnew.1_2_0.settings':
         'Settings now open inside the popup instead of a separate tab. The gear lights up while you are in there; click it again to go back to your codes.',
-    'whatsnew.1_2_0.optionalPassword': 
+    'whatsnew.1_2_0.optionalPassword':
         'The master password is now optional. A fresh install is usable straight away, and you can turn the password on or off any time in Settings.',
-    'whatsnew.1_2_0.unlock': 
+    'whatsnew.1_2_0.unlock':
         'One single unlock screen for the popup and the fingerprint window, so nothing shifts around when you unlock with biometrics.',
-    'whatsnew.1_2_0.backoff': 
+    'whatsnew.1_2_0.backoff':
         'Stricter protection against password guessing: five free attempts, then a wait that doubles each time, applied to fingerprint unlock as well.',
-    'whatsnew.1_2_0.version': 
-        'Settings shows which version you are running, with a button to check for updates on demand.',
 
     'options.destroy.title': 'Delete everything',
     'options.destroy.lead':
