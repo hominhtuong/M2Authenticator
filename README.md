@@ -101,8 +101,9 @@ Vòng tròn bên trái đếm ngược số giây còn lại của mã. Mã chuy
 
 ### Bật mở khoá bằng vân tay
 
-Vào **Cài đặt** (nút bánh răng) => mục **Mở khoá bằng vân tay** => **Bật**. Cần máy có Touch ID, Windows Hello
-hoặc khoá bảo mật hỗ trợ WebAuthn PRF.
+Vào **Cài đặt** (nút bánh răng, mở ngay trong popup) => mục **Mở khoá bằng vân tay** => **Bật**. Cần máy có
+Touch ID, Windows Hello hoặc khoá bảo mật hỗ trợ WebAuthn PRF. Riêng bước đăng ký mở ra cửa sổ riêng, vì hộp
+thoại sinh trắc của hệ điều hành làm popup đóng giữa chừng.
 
 Sau khi bật, màn khoá có thêm nút mở bằng sinh trắc. Master password vẫn dùng được như phương án dự phòng, và
 gỡ vân tay không ảnh hưởng gì tới đường mật khẩu.
@@ -116,9 +117,24 @@ Mặc định là tiếng Anh. Hiện hỗ trợ tiếng Anh và tiếng Việt.
 
 ### Các mốc nên chỉnh trong Cài đặt
 
+Bấm nút bánh răng là cài đặt mở ngay trong popup, không nhảy sang tab khác. Bấm mũi tên quay lại để về danh
+sách mã, bấm ổ khoá để khoá vault luôn.
+
 - **Tự khoá sau:** mặc định 5 phút không thao tác. Đặt "Chỉ khi đóng Chrome" nếu máy cá nhân và bạn thấy phiền.
 - **Tự xoá clipboard:** mặc định 20 giây sau khi copy mã. Đặt "Không tự xoá" nếu bạn hay copy thứ khác xen giữa.
 - **Làm mờ mã:** bật nếu hay dùng máy nơi đông người hoặc share màn hình.
+- **Master password:** tắt được nếu bạn thấy phiền. Đọc kỹ phần dưới trước khi tắt.
+
+### Tắt master password (đọc kỹ)
+
+Trong **Cài đặt => Master password** có nút tắt hẳn lớp mật khẩu. Sau khi tắt:
+
+- Vault mở thẳng, không hỏi gì, không auto-lock. Các mục Tự khoá, Mở khoá bằng vân tay và Đổi mật khẩu bị ẩn
+  vì không còn mật khẩu nào để khoá.
+- Dữ liệu vẫn nằm ở dạng mã hoá, nhưng khoá giải mã nằm ngay trong profile Chrome, cạnh dữ liệu. Nghĩa là
+  bất cứ thứ gì đọc được profile Chrome của bạn đều đọc được seed 2FA. Đây là đánh đổi tiện lợi, không phải
+  bảo vệ.
+- Mật khẩu cũ và vân tay đã đăng ký bị gỡ. Bật lại là phải đặt mật khẩu mới từ đầu.
 
 ---
 
@@ -193,11 +209,15 @@ cục là vô nghĩa: user sẽ phải nhập lại mật khẩu vài phút mộ
 
 ### Chống dò mật khẩu
 
-Chờ tăng dần theo số lần sai, đếm bằng bộ nhớ bền nên khởi động lại Chrome không reset:
+Năm lần sai đầu không bị phạt, từ lần thứ sáu phải chờ và thời gian chờ gấp đôi sau mỗi lần. Bộ đếm ghi
+xuống bộ nhớ bền nên khởi động lại Chrome không reset, và về 0 ngay khi mở khoá thành công:
 
-| Lần sai | 1-2 | 3 | 4 | 5 | 6 | 7 | 8+ |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| Phải chờ | 0 | 1s | 3s | 10s | 30s | 60s | 5 phút |
+| Lần sai | 1-5 | 6 | 7 | 8 | 9 | 10 | 11 | 12+ |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Phải chờ | 0 | 15s | 30s | 1 phút | 2 phút | 4 phút | 8 phút | gấp đôi tới trần 30 phút |
+
+Lúc đang bị phạt, cả ô mật khẩu lẫn nút mở khoá bằng vân tay đều bị khoá và màn hình đếm ngược tại chỗ:
+chặn một đường mà chừa đường kia thì lớp chống dò không có tác dụng gì.
 
 Cố ý **không** có tính năng xoá vault sau N lần sai: khi chưa có export backup, tính năng đó biến một lần
 nghịch bàn phím thành mất vĩnh viễn mọi tài khoản 2FA.
@@ -260,10 +280,11 @@ src/                    extension (thư mục để load unpacked / đem đi né
   _locales/             tên và mô tả cho Chrome Web Store (en, vi)
   background/           service worker: auto-lock, dọn clipboard
   offscreen/            tài liệu offscreen chỉ để ghi đè clipboard
-  popup/                danh sách mã, tìm kiếm, sắp xếp
-  unlock/               tạo master password + mở khoá (cửa sổ riêng, cần cho WebAuthn)
+  popup/                danh sách mã, tìm kiếm, sắp xếp, panel cài đặt
+  unlock/               khung mở khoá dùng chung + trang tạo master password (cửa sổ riêng, cần cho WebAuthn)
+  settings/             màn cài đặt dùng chung cho popup và trang options
   import/               quét QR và xem lại trước khi lưu hàng loạt
-  options/              cài đặt, đổi mật khẩu, bật vân tay, xoá vault
+  options/              vỏ full-size của màn cài đặt (nơi chạy được ceremony đăng ký vân tay)
 scripts/
   build.mjs             kiểm tra + đóng gói zip
   release.mjs           tag + tạo GitHub release

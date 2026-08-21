@@ -9,6 +9,12 @@ export const LOCAL_KEYS = {
     VAULT: 'vault_v2',
     SECURITY: 'security_v1',
     SETTINGS: 'settings_v1',
+    /**
+     * Khoá thiết bị: chỉ tồn tại khi user tự tắt lớp master password. Nó nằm cạnh vault
+     * nên không phải là bảo vệ thật, chỉ giữ đúng bất biến "không có seed dạng plaintext
+     * trên đĩa". Xem phần "Tắt lớp master password" trong SECURITY.md.
+     */
+    DEVICE_KEY: 'devicekey_v1',
 };
 
 export const SESSION_KEYS = {

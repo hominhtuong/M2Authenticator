@@ -85,13 +85,13 @@ test('mọi khoá dùng trong JS đều tồn tại', () => {
 });
 
 test('không còn chuỗi tiếng Việt cứng trong tầng UI', () => {
-    // Dấu tiếng Việt trong chuỗi ký tự ở popup/unlock/import/options nghĩa là quên dịch.
+    // Dấu tiếng Việt trong chuỗi ký tự ở tầng UI nghĩa là quên dịch.
     const vietnamese = /[àáảãạăằắẳẵặâầấẩẫậèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđ]/i;
     const offenders = [];
 
     for (const file of files.filter((path) => path.endsWith('.js'))) {
         const rel = relative(SRC, file);
-        if (!/^(popup|unlock|import|options)\//.test(rel)) continue;
+        if (!/^(popup|unlock|import|options|settings)\//.test(rel)) continue;
 
         readFileSync(file, 'utf8')
             .split('\n')

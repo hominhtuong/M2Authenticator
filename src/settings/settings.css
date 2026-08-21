@@ -1,0 +1,124 @@
+/*
+ * Kiểu cho màn cài đặt dùng chung. Trang options/ nạp file này cùng options.css,
+ * popup nạp cùng popup.css - phần khác nhau chỉ là bề rộng và khoảng đệm.
+ */
+
+.settings .card {
+    margin-bottom: 18px;
+    padding: 20px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--bg-elevated);
+}
+
+.settings .card:last-child {
+    margin-bottom: 0;
+}
+
+.settings .card h2 {
+    margin-bottom: 6px;
+    font-size: 15px;
+}
+
+.settings .card__lead {
+    margin: 0 0 16px;
+    color: var(--text-muted);
+    font-size: 13px;
+    line-height: 1.55;
+}
+
+.settings .card__note {
+    margin: 12px 0 0;
+    color: var(--text-faint);
+    font-size: 12px;
+    line-height: 1.55;
+}
+
+.settings .card--danger {
+    border-color: #4a2430;
+}
+
+.settings .card--danger h2 {
+    color: var(--danger);
+}
+
+.settings .status-line {
+    margin-bottom: 14px;
+    padding: 10px 12px;
+    border-radius: var(--radius);
+    background: var(--bg-input);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.settings .status-line[data-on='true'] {
+    color: #b3ecca;
+}
+
+.settings .row-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.settings .checkline {
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+    color: var(--text-muted);
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.settings .checkline input {
+    margin-top: 2px;
+    accent-color: var(--accent);
+}
+
+.settings .facts {
+    margin: 0;
+    padding-left: 18px;
+    color: var(--text-muted);
+    font-size: 13px;
+    line-height: 1.75;
+}
+
+.settings .facts b {
+    color: var(--text);
+    font-weight: 600;
+}
+
+/* Thanh đo độ mạnh đứng ngay dưới ô mật khẩu mới, không phải một khối rời. */
+.settings .strength-block {
+    margin: -8px 0 14px;
+}
+
+/* ------------------------------------------------------- bản gọn trong popup */
+
+.settings--compact .card {
+    margin-bottom: 12px;
+    padding: 14px;
+}
+
+.settings--compact .card h2 {
+    font-size: 14px;
+}
+
+.settings--compact .card__lead {
+    margin-bottom: 12px;
+    font-size: 12px;
+}
+
+.settings--compact .langswitch {
+    width: 100%;
+}
+
+.facts-details summary {
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.facts-details[open] summary {
+    margin-bottom: 10px;
+}

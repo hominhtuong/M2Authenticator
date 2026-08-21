@@ -4,6 +4,7 @@
     <meta charset="utf-8" />
     <title>M2 Authenticator</title>
     <link rel="stylesheet" href="../assets/styles/app.css" />
+    <link rel="stylesheet" href="../settings/settings.css" />
     <link rel="stylesheet" href="options.css" />
 </head>
 <body class="page">
@@ -16,112 +17,8 @@
     <div id="welcomeNotice" class="alert alert--success" data-i18n="options.welcome" hidden></div>
     <div id="lockedNotice" class="alert alert--warning" data-i18n="options.locked" hidden></div>
 
-    <!-- Ngôn ngữ -->
-    <section class="card">
-        <h2 data-i18n="options.language.title"></h2>
-        <p class="card__lead" data-i18n="options.language.lead"></p>
-        <div id="langSlot"></div>
-    </section>
-
-    <!-- Khoá và phiên -->
-    <section class="card">
-        <h2 data-i18n="options.lock.title"></h2>
-        <p class="card__lead" data-i18n="options.lock.lead"></p>
-
-        <label class="field">
-            <span class="field__label" data-i18n="options.lock.after"></span>
-            <select id="autoLock" class="input">
-                <option value="1" data-i18n="options.lock.1"></option>
-                <option value="5" data-i18n="options.lock.5"></option>
-                <option value="15" data-i18n="options.lock.15"></option>
-                <option value="30" data-i18n="options.lock.30"></option>
-                <option value="60" data-i18n="options.lock.60"></option>
-                <option value="0" data-i18n="options.lock.0"></option>
-            </select>
-        </label>
-
-        <label class="field">
-            <span class="field__label" data-i18n="options.clipboard.label"></span>
-            <select id="clipboardClear" class="input">
-                <option value="10" data-i18n="options.clipboard.10"></option>
-                <option value="20" data-i18n="options.clipboard.20"></option>
-                <option value="60" data-i18n="options.clipboard.60"></option>
-                <option value="0" data-i18n="options.clipboard.0"></option>
-            </select>
-            <span class="field__hint" data-i18n="options.clipboard.hint"></span>
-        </label>
-
-        <label class="checkline">
-            <input id="hideCodes" type="checkbox" />
-            <span data-i18n="options.hideCodes"></span>
-        </label>
-    </section>
-
-    <!-- Vân tay -->
-    <section class="card">
-        <h2 data-i18n="options.biometric.title"></h2>
-        <p class="card__lead" data-i18n="options.biometric.lead"></p>
-
-        <div id="biometricStatus" class="status-line"></div>
-        <div id="biometricAlert" class="alert" hidden></div>
-
-        <div class="row-actions">
-            <button id="enrollBiometricBtn" class="btn btn--primary" type="button" data-i18n="options.biometric.enable" hidden></button>
-            <button id="removeBiometricBtn" class="btn btn--danger" type="button" data-i18n="options.biometric.remove" hidden></button>
-        </div>
-    </section>
-
-    <!-- Master password -->
-    <section class="card">
-        <h2 data-i18n="options.password.title"></h2>
-        <p class="card__lead" data-i18n="options.password.lead"></p>
-
-        <form id="passwordForm" autocomplete="off">
-            <label class="field">
-                <span class="field__label" data-i18n="options.password.current"></span>
-                <input id="currentPassword" class="input" type="password" autocomplete="current-password" required />
-            </label>
-            <label class="field">
-                <span class="field__label" data-i18n="options.password.next"></span>
-                <input id="nextPassword" class="input" type="password" autocomplete="new-password" required />
-                <div class="strength" aria-hidden="true">
-                    <span class="strength__bar"></span>
-                    <span class="strength__bar"></span>
-                    <span class="strength__bar"></span>
-                    <span class="strength__bar"></span>
-                    <span class="strength__bar"></span>
-                </div>
-                <div id="strengthLabel" class="strength__label"></div>
-            </label>
-            <label class="field">
-                <span class="field__label" data-i18n="options.password.confirm"></span>
-                <input id="nextPasswordConfirm" class="input" type="password" autocomplete="new-password" required />
-            </label>
-
-            <div id="passwordAlert" class="alert" hidden></div>
-            <button id="changePasswordBtn" class="btn btn--primary" type="submit" data-i18n="options.password.submit"></button>
-        </form>
-    </section>
-
-    <!-- Thông tin bảo mật -->
-    <section class="card">
-        <h2 data-i18n="options.facts.title"></h2>
-        <ul class="facts">
-            <li><b data-i18n="options.facts.encryption"></b> <span data-i18n="options.facts.encryptionText"></span></li>
-            <li><b data-i18n="options.facts.kdf"></b> <span data-i18n="options.facts.kdfText"></span></li>
-            <li><b data-i18n="options.facts.locked"></b> <span data-i18n="options.facts.lockedText"></span></li>
-            <li><b data-i18n="options.facts.unlocked"></b> <span data-i18n="options.facts.unlockedText"></span></li>
-            <li><b data-i18n="options.facts.network"></b> <span data-i18n="options.facts.networkText"></span></li>
-            <li><b data-i18n="options.facts.sync"></b> <span data-i18n="options.facts.syncText"></span></li>
-        </ul>
-    </section>
-
-    <!-- Vùng nguy hiểm -->
-    <section class="card card--danger">
-        <h2 data-i18n="options.destroy.title"></h2>
-        <p class="card__lead" data-i18n="options.destroy.lead"></p>
-        <button id="destroyBtn" class="btn btn--danger" type="button" data-i18n="options.destroy.action"></button>
-    </section>
+    <!-- Nội dung dựng từ settings/settings-view.js, dùng chung với panel cài đặt trong popup -->
+    <div id="settingsHost"></div>
 </main>
 
 <script type="module" src="options.js"></script>

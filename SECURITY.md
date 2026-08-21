@@ -59,12 +59,40 @@ bộ nhớ đúng hạn kể cả khi không ai mở popup.
 
 Chờ tăng dần theo số lần sai, đếm bằng `chrome.storage.local` nên khởi động lại Chrome không reset:
 
-| Lần sai | 1-2 | 3 | 4 | 5 | 6 | 7 | 8+ |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| Phải chờ | 0 | 1s | 3s | 10s | 30s | 60s | 5 phút |
+| Lần sai | 1-5 | 6 | 7 | 8 | 9 | 10 | 11 | 12+ |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Phải chờ | 0 | 15s | 30s | 1 phút | 2 phút | 4 phút | 8 phút | gấp đôi, trần 30 phút |
+
+Năm lần đầu không phạt vì gõ nhầm là chuyện thường; từ lần thứ sáu chi phí tăng theo cấp số nhân nên dò tự động
+trở nên vô nghĩa. Có trần 30 phút để người quên mật khẩu thật không bị khoá cả ngày - trần đó vẫn giữ tốc độ dò
+ở mức 48 lần thử một ngày.
+
+Một lần mở khoá thành công (bằng mật khẩu hoặc vân tay) đưa bộ đếm về 0.
+
+Phạt áp cho **cả** đường mật khẩu lẫn đường vân tay, và UI khoá cả hai nút trong lúc chờ: chặn một đường mà
+chừa đường kia thì lớp này không có tác dụng gì.
 
 **Cố ý không có tính năng xoá vault sau N lần sai.** Khi chưa có export backup mã hoá, tính năng đó biến một
 lần con nghịch bàn phím thành mất vĩnh viễn mọi tài khoản 2FA. Sẽ cân nhắc lại sau khi có đường sao lưu.
+
+## Tắt lớp master password
+
+Cài đặt có tuỳ chọn tắt hẳn master password. Đây là tính năng tiện lợi có đánh đổi rõ ràng, không phải một mức
+bảo mật khác.
+
+Khi tắt:
+
+- DEK được bọc lại bằng một khoá ngẫu nhiên 32 byte nằm trong `chrome.storage.local` (`devicekey_v1`), AAD
+  `dek-wrap-open`. Vault vẫn là ciphertext trên đĩa, đúng bất biến "không có seed dạng plaintext", **nhưng**
+  khoá nằm ngay cạnh dữ liệu. Ai đọc được profile Chrome thì đọc được seed. Coi như không có mã hoá.
+- Bản bọc bằng mật khẩu và bản bọc bằng vân tay bị xoá khỏi bản ghi. Không còn mật khẩu cũ nằm lay lắt.
+- Auto-lock ngừng hẳn: khoá xong vault sẽ tự mở lại ngay, nên UI ẩn luôn nút khoá và các mục liên quan.
+
+Bật lại yêu cầu đặt mật khẩu mới từ đầu: DEK được bọc lại bằng KEK mới, `devicekey_v1` bị xoá khỏi đĩa. Toàn bộ
+account giữ nguyên vì DEK không đổi.
+
+Trường `protection` trong bản ghi vault là phần thêm vào, không đổi định dạng cũ: bản ghi thiếu trường này được
+đọc là `password`, nên không cần tăng `SCHEMA_VERSION` và vault cũ vẫn giải mã bình thường.
 
 ## Bề mặt tấn công đã cắt
 

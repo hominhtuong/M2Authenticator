@@ -1,35 +1,16 @@
+/* Cửa sổ unlock chỉ lo canh giữa; khung bên trong dùng .unlock-card trong app.css. */
+
 .unlock-page {
     display: flex;
     align-items: center;
     justify-content: center;
     min-height: 100vh;
-    padding: 24px;
+    padding: 24px 20px;
 }
 
-.card {
+.unlock-shell {
     width: 100%;
     max-width: 380px;
-    padding: 26px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    background: var(--bg-elevated);
-}
-
-.brand {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 10px;
-}
-
-.brand h1 {
-    font-size: 18px;
-}
-
-.lead {
-    margin: 0 0 18px;
-    color: var(--text-muted);
-    font-size: 13px;
 }
 
 .checkline {
@@ -45,23 +26,4 @@
 .checkline input {
     margin-top: 2px;
     accent-color: var(--accent);
-}
-
-.footnote {
-    margin: 16px 0 0;
-    color: var(--text-faint);
-    font-size: 12px;
-    text-align: center;
-}
-
-#biometricBtn {
-    margin-top: 10px;
-}
-
-.card__lang {
-    display: flex;
-    justify-content: center;
-    margin-top: 18px;
-    padding-top: 16px;
-    border-top: 1px solid var(--border);
 }

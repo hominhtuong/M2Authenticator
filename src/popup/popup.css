@@ -5,6 +5,11 @@
     overflow: hidden;
 }
 
+/* Mở cài đặt thì popup kéo dài hết cỡ cho phép, nội dung cuộn bên trong panel. */
+.popup[data-view='settings'] {
+    height: 580px;
+}
+
 .screen {
     padding: 14px;
 }
@@ -34,13 +39,6 @@
     font-size: 13px;
 }
 
-.unlock-form {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-bottom: 10px;
-}
-
 /* ------------------------------------------------------------- topbar */
 
 .topbar {
@@ -49,6 +47,12 @@
     gap: 4px;
     padding-bottom: 12px;
     border-bottom: 1px solid var(--border);
+}
+
+.topbar__title {
+    flex: 1;
+    min-width: 0;
+    font-size: 15px;
 }
 
 .search {
@@ -231,6 +235,26 @@
     color: var(--text-faint);
     font-size: 11px;
     font-variant-numeric: tabular-nums;
+}
+
+/* --------------------------------------------------- panel cài đặt */
+
+.settings-panel {
+    max-height: 470px;
+    margin: 12px -14px 0;
+    padding: 0 14px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+.settings-panel::-webkit-scrollbar {
+    width: 8px;
+}
+
+.settings-panel::-webkit-scrollbar-thumb {
+    border: 2px solid var(--bg);
+    border-radius: 4px;
+    background: var(--border-strong);
 }
 
 /* ----------------------------------------------------- đổi ngôn ngữ */

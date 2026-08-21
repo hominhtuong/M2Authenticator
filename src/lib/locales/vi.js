@@ -14,16 +14,12 @@ export const vi = {
         'Tạo master password để bắt đầu. Toàn bộ mã 2FA sẽ được mã hoá bằng khoá dẫn xuất từ mật khẩu này.',
     'popup.setup.action': 'Thiết lập ngay',
 
-    'popup.locked.title': 'Đang khoá',
-    'popup.locked.passwordPlaceholder': 'Master password',
-    'popup.locked.unlock': 'Mở khoá',
-    'popup.locked.unlocking': 'Đang mở khoá...',
-    'popup.locked.biometric': 'Mở khoá bằng vân tay',
 
     'popup.search': 'Tìm account...',
     'popup.action.add': 'Thêm account',
     'popup.action.sort': 'Sắp xếp',
     'popup.action.settings': 'Cài đặt',
+    'popup.action.back': 'Quay lại danh sách mã',
     'popup.action.lock': 'Khoá lại',
 
     'popup.empty.title': 'Chưa có account nào',
@@ -75,8 +71,14 @@ export const vi = {
     'unlock.action': 'Mở khoá',
     'unlock.working': 'Đang mở khoá...',
     'unlock.biometric': 'Mở khoá bằng vân tay',
-    'unlock.biometricWaiting': 'Đang chờ xác thực...',
     'unlock.footnote': 'Vault tự khoá lại theo thời gian rảnh bạn đặt trong Cài đặt.',
+
+    'unlock.scan.title': 'Đang chờ vân tay',
+    'unlock.scan.hint': 'Chạm cảm biến để mở vault. Khung này chờ tới khi bạn xong hoặc bấm huỷ.',
+    'unlock.scan.usePassword': 'Dùng master password',
+    'unlock.lockout': 'Sai quá nhiều lần. Thử lại sau {time}.',
+    'unlock.wait.seconds': '{seconds} giây',
+    'unlock.wait.minutes': '{minutes} phút {seconds} giây',
 
     'password.strength': 'Độ mạnh: {label}',
     'password.strength.0': 'Rất yếu',
@@ -165,6 +167,29 @@ export const vi = {
     'options.language.title': 'Ngôn ngữ',
     'options.language.lead': 'Áp dụng cho toàn bộ extension và có hiệu lực ngay.',
 
+    'options.protection.title': 'Master password',
+    'options.protection.lead': 
+        'Master password là thứ biến seed đã lưu thành dữ liệu không đọc được trên đĩa. Bạn có thể tắt cho tiện, nhưng khi đó bất cứ thứ gì đọc được profile Chrome này đều đọc được mã của bạn.',
+    'options.protection.on': 'Đang bật. Vault chỉ mở khi bạn nhập master password.',
+    'options.protection.off': 'Đang tắt. Vault tự mở, không cần mật khẩu và không có khoá.',
+    'options.protection.disable': 'Tắt master password',
+    'options.protection.disableTitle': 'Tắt master password?',
+    'options.protection.disableMessage': 
+        'Mã 2FA sẽ mở ra mà không cần mật khẩu, và khoá giải mã nằm ngay cạnh dữ liệu trong profile Chrome này. Auto-lock, mở khoá bằng vân tay và mật khẩu hiện tại đều bị gỡ. Bật lại là phải đặt mật khẩu mới từ đầu.',
+    'options.protection.disableAction': 'Tắt đi',
+    'options.protection.disabled': 'Đã tắt master password.',
+    'options.protection.needUnlock': 'Mở khoá vault trước rồi mới đổi được mục này.',
+    'options.protection.enable': 'Bật lại master password',
+    'options.protection.enableLead': 'Đặt mật khẩu mới. Mật khẩu cũ đã bị gỡ lúc bạn tắt tính năng này.',
+    'options.protection.newPassword': 'Master password mới',
+    'options.protection.confirm': 'Nhập lại master password mới',
+    'options.protection.submit': 'Bật và bọc lại khoá',
+    'options.protection.working': 'Đang dẫn xuất khoá...',
+    'options.protection.enabled': 'Đã bật lại master password.',
+    'options.protection.mismatch': 'Hai mật khẩu không khớp.',
+    'options.protection.hiddenNote': 
+        'Auto-lock, mở khoá bằng vân tay và đổi mật khẩu đang ẩn vì không còn master password nào để khoá.',
+
     'options.lock.title': 'Khoá tự động',
     'options.lock.lead':
         'Vault luôn tự khoá khi bạn đóng Chrome. Mốc dưới đây là thời gian rảnh trước khi khoá sớm hơn.',
@@ -176,6 +201,9 @@ export const vi = {
     'options.lock.60': '1 giờ',
     'options.lock.0': 'Chỉ khi đóng Chrome',
     'options.lock.saved': 'Đã lưu mốc tự khoá.',
+
+    'options.display.title': 'Hiển thị và clipboard',
+    'options.display.lead': 'Áp dụng bất kể vault có master password hay không.',
 
     'options.clipboard.label': 'Tự xoá clipboard sau khi copy mã',
     'options.clipboard.hint':
@@ -298,6 +326,10 @@ export const vi = {
     'error.wrongPassword': 'Master password không đúng. Đã sai {attempts} lần.',
     'error.wrongCurrentPassword': 'Master password hiện tại không đúng.',
     'error.tooManyAttempts': 'Nhập sai quá nhiều lần. Thử lại sau {seconds} giây.',
+
+    'error.protectionOff': 'Vault này không đặt master password. Mở thẳng từ icon extension.',
+    'error.protectionAlreadyOn': 'Master password đang bật sẵn.',
+    'error.vaultNeedUnlockForProtection': 'Mở khoá vault trước khi đổi cài đặt master password.',
 
     'error.biometricNotEnrolled': 'Chưa đăng ký mở khoá bằng vân tay.',
     'error.biometricBadRecord': 'Dữ liệu đăng ký vân tay không hợp lệ.',

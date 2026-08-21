@@ -417,6 +417,111 @@ select {
     opacity: 0.8;
 }
 
+/* ------------------------------------------------------- khung mở khoá
+
+   Popup và cửa sổ unlock dùng chung đúng khung này, dựng từ unlock/unlock-view.js.
+   Mọi kích thước nằm ở đây chứ không nằm trong CSS riêng của từng trang, để hai nơi
+   không bao giờ lệch nhau một pixel.
+*/
+
+.unlock-card {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 336px;
+    margin: 0 auto;
+    text-align: left;
+}
+
+.unlock-card .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.unlock-card .brand h1 {
+    font-size: 17px;
+}
+
+.unlock-card__lead {
+    margin: 0 0 16px;
+    color: var(--text-muted);
+    font-size: 13px;
+    line-height: 1.55;
+}
+
+.unlock-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.unlock-card__biometric {
+    margin-top: 10px;
+}
+
+.unlock-card__footnote {
+    margin: 16px 0 0;
+    color: var(--text-faint);
+    font-size: 12px;
+    text-align: center;
+}
+
+.unlock-card__lang {
+    display: flex;
+    justify-content: center;
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+}
+
+/* ------------------------------------------------------ đang quét vân tay */
+
+.scan {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.scan__pulse {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 62px;
+    height: 62px;
+    margin-bottom: 12px;
+    border: 1px solid var(--border-strong);
+    border-radius: 50%;
+    background: var(--bg-input);
+    color: var(--accent);
+    animation: scan-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes scan-pulse {
+    0%,
+    100% {
+        box-shadow: 0 0 0 0 rgba(77, 124, 254, 0.35);
+    }
+    50% {
+        box-shadow: 0 0 0 10px rgba(77, 124, 254, 0);
+    }
+}
+
+.scan__title {
+    margin: 0 0 6px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.scan__hint {
+    margin: 0 0 16px;
+    color: var(--text-muted);
+    font-size: 12px;
+    line-height: 1.55;
+}
+
 .visually-hidden {
     position: absolute;
     width: 1px;

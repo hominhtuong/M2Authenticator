@@ -1,53 +1,42 @@
 /**
  * Trang mở khoá dạng cửa sổ riêng.
  *
- * Ở đây thay vì trong popup vì hộp thoại vân tay của hệ điều hành làm popup mất focus và đóng lại,
- * huỷ luôn ceremony WebAuthn. Cửa sổ riêng thì sống sót.
+ * Có trang này vì hộp thoại vân tay của hệ điều hành làm popup mất focus và đóng lại, huỷ luôn
+ * ceremony WebAuthn. Cửa sổ riêng thì sống sót. Khung mở khoá lấy nguyên từ unlock-view.js -
+ * đúng khung mà popup đang hiển thị - nên user không thấy giao diện nhảy chỗ khi bấm vân tay.
  */
 
 import { $, $$, show } from '../lib/dom.js';
 import { assessPassword } from '../lib/crypto.js';
 import { buildLanguageSwitcher, describeError, initI18n, onLanguageChange, t } from '../lib/i18n.js';
 import * as vault from '../lib/vault.js';
-import { evaluatePrf, isPlatformAuthenticatorAvailable, webAuthnErrorCode } from '../lib/webauthn.js';
+import { createUnlockView } from './unlock-view.js';
 
 const params = new URLSearchParams(location.search);
 const wantSetup = params.has('setup');
 const wantBiometric = params.has('biometric');
 
 const ui = {
-    title: $('#title'),
-    lead: $('#lead'),
-    alert: $('#alert'),
+    setupCard: $('#setupCard'),
+    setupAlert: $('#setupAlert'),
     setupForm: $('#setupForm'),
     newPassword: $('#newPassword'),
     confirmPassword: $('#confirmPassword'),
     ackLoss: $('#ackLoss'),
     createBtn: $('#createBtn'),
-    unlockForm: $('#unlockForm'),
-    password: $('#password'),
-    unlockBtn: $('#unlockBtn'),
-    biometricBtn: $('#biometricBtn'),
     strengthBars: $$('.strength__bar'),
     strengthLabel: $('#strengthLabel'),
-    footnote: $('#footnote'),
+    unlockSlot: $('#unlockSlot'),
 };
 
-let mode = 'unlock'; // 'setup' | 'unlock'
-
-function setAlert(message, variant = 'error') {
+function setSetupAlert(message, variant = 'error') {
     if (!message) {
-        show(ui.alert, false);
+        show(ui.setupAlert, false);
         return;
     }
-    ui.alert.className = `alert alert--${variant}`;
-    ui.alert.textContent = message;
-    show(ui.alert, true);
-}
-
-function showError(error) {
-    const code = error?.name ? webAuthnErrorCode(error) : null;
-    setAlert(code ? t(code) : describeError(error));
+    ui.setupAlert.className = `alert alert--${variant}`;
+    ui.setupAlert.textContent = message;
+    show(ui.setupAlert, true);
 }
 
 function done() {
@@ -93,13 +82,13 @@ ui.setupForm.addEventListener('submit', async (event) => {
     event.preventDefault();
 
     if (ui.newPassword.value !== ui.confirmPassword.value) {
-        setAlert(t('unlock.setup.mismatch'));
+        setSetupAlert(t('unlock.setup.mismatch'));
         return;
     }
 
     ui.createBtn.disabled = true;
     ui.createBtn.textContent = t('unlock.setup.working');
-    setAlert('');
+    setSetupAlert('');
 
     try {
         await vault.initialize(ui.newPassword.value);
@@ -108,118 +97,47 @@ ui.setupForm.addEventListener('submit', async (event) => {
         chrome.tabs.create({ url: chrome.runtime.getURL('options/options.html?welcome=1') });
         done();
     } catch (error) {
-        showError(error);
+        setSetupAlert(describeError(error));
         ui.createBtn.disabled = false;
         ui.createBtn.textContent = t('unlock.setup.action');
     }
 });
 
-// -------------------------------------------------------------- mở khoá
-
-ui.unlockForm.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    ui.unlockBtn.disabled = true;
-    ui.unlockBtn.textContent = t('unlock.working');
-    setAlert('');
-
-    try {
-        await vault.unlockWithPassword(ui.password.value);
-        ui.password.value = '';
-        done();
-    } catch (error) {
-        showError(error);
-        ui.password.select();
-    } finally {
-        ui.unlockBtn.disabled = false;
-        ui.unlockBtn.textContent = t('unlock.action');
-    }
-});
-
-async function unlockWithBiometric() {
-    ui.biometricBtn.disabled = true;
-    ui.biometricBtn.textContent = t('unlock.biometricWaiting');
-    setAlert('');
-
-    let prfOutput;
-    try {
-        const descriptor = await vault.getBiometricDescriptor();
-        if (!descriptor?.credentialId || !descriptor?.prfSalt) {
-            setAlert(t('error.biometricBadRecord'));
-            return;
-        }
-
-        prfOutput = await evaluatePrf(descriptor.credentialId, descriptor.prfSalt);
-        await vault.unlockWithPrf(prfOutput);
-        done();
-    } catch (error) {
-        showError(error);
-    } finally {
-        if (prfOutput) prfOutput.fill(0);
-        ui.biometricBtn.disabled = false;
-        ui.biometricBtn.textContent = t('unlock.biometric');
-    }
-}
-
-ui.biometricBtn.addEventListener('click', unlockWithBiometric);
-
 // ------------------------------------------------------------ khởi động
 
-/** Chữ dựng bằng JS phải vẽ lại khi đổi ngôn ngữ, khác với chữ có data-i18n trong HTML. */
-function paintDynamicText() {
-    if (mode === 'setup') {
-        ui.title.textContent = t('unlock.setup.title');
-        ui.lead.textContent = t('unlock.setup.lead');
-        ui.footnote.textContent = '';
-    } else {
-        ui.title.textContent = t('unlock.title');
-        ui.lead.textContent = t('unlock.lead');
-        ui.footnote.textContent = t('unlock.footnote');
-    }
-    if (ui.newPassword.value) renderStrength();
+async function mountUnlockView() {
+    const view = createUnlockView({ onUnlocked: done, autoBiometric: wantBiometric });
+    ui.unlockSlot.append(view.root);
+    await view.start();
+    return view;
 }
 
 async function boot() {
     await initI18n();
-    $('#langSlot').append(buildLanguageSwitcher());
-    onLanguageChange(paintDynamicText);
+    $('#setupLang').append(buildLanguageSwitcher({ compact: true }));
+    onLanguageChange(() => {
+        if (ui.newPassword.value) renderStrength();
+    });
 
     const initialized = await vault.isInitialized();
 
-    if (!initialized || wantSetup) {
-        if (initialized) {
-            mode = 'unlock';
-            paintDynamicText();
-            setAlert(t('unlock.setup.exists'), 'warning');
-            show(ui.unlockForm, true);
-            ui.password.focus();
-            return;
-        }
+    // Vault không còn lớp mật khẩu thì không có gì để mở khoá: nó luôn ở trạng thái mở.
+    if (initialized && (await vault.getProtection()) === vault.Protection.NONE) {
+        done();
+        return;
+    }
 
-        mode = 'setup';
-        paintDynamicText();
-        show(ui.setupForm, true);
+    if (!initialized) {
+        show(ui.setupCard, true);
         ui.createBtn.disabled = true;
         ui.newPassword.focus();
         return;
     }
 
-    mode = 'unlock';
-    paintDynamicText();
-    show(ui.unlockForm, true);
+    const view = await mountUnlockView();
 
-    const biometricReady = (await vault.hasBiometric()) && (await isPlatformAuthenticatorAvailable());
-    show(ui.biometricBtn, biometricReady);
-
-    const status = await vault.getLockoutStatus();
-    if (status.lockedOut) {
-        setAlert(t('error.tooManyAttempts', { seconds: Math.ceil(status.remainingMs / 1000) }));
-    }
-
-    if (wantBiometric && biometricReady) {
-        await unlockWithBiometric();
-    } else {
-        ui.password.focus();
-    }
+    // Vào bằng link tạo vault nhưng vault đã tồn tại: nói rõ thay vì hiện form tạo lần hai.
+    if (wantSetup) view.setAlert(t('unlock.setup.exists'), 'warning');
 }
 
 boot();

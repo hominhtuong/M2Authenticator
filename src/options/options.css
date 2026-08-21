@@ -1,3 +1,5 @@
+/* Trang options chỉ lo khung trang; các thẻ cài đặt dùng settings/settings.css. */
+
 .page {
     padding: 32px 20px 80px;
 }
@@ -20,76 +22,4 @@
     margin: 0;
     color: var(--text-muted);
     font-size: 13px;
-}
-
-.card {
-    margin-bottom: 18px;
-    padding: 20px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    background: var(--bg-elevated);
-}
-
-.card h2 {
-    margin-bottom: 6px;
-    font-size: 15px;
-}
-
-.card__lead {
-    margin: 0 0 16px;
-    color: var(--text-muted);
-    font-size: 13px;
-    line-height: 1.55;
-}
-
-.card--danger {
-    border-color: #4a2430;
-}
-
-.card--danger h2 {
-    color: var(--danger);
-}
-
-.checkline {
-    display: flex;
-    align-items: flex-start;
-    gap: 9px;
-    color: var(--text-muted);
-    font-size: 13px;
-    cursor: pointer;
-}
-
-.checkline input {
-    margin-top: 2px;
-    accent-color: var(--accent);
-}
-
-.status-line {
-    margin-bottom: 14px;
-    padding: 10px 12px;
-    border-radius: var(--radius);
-    background: var(--bg-input);
-    font-size: 13px;
-}
-
-.status-line[data-on='true'] {
-    color: #b3ecca;
-}
-
-.row-actions {
-    display: flex;
-    gap: 8px;
-}
-
-.facts {
-    margin: 0;
-    padding-left: 18px;
-    color: var(--text-muted);
-    font-size: 13px;
-    line-height: 1.75;
-}
-
-.facts b {
-    color: var(--text);
-    font-weight: 600;
 }

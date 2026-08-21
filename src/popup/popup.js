@@ -3,7 +3,10 @@ import { copyCode } from '../lib/clipboard.js';
 import { MSG } from '../lib/messages.js';
 import { displayLabel } from '../lib/otpauth.js';
 import { generateForAccount, secondsRemaining } from '../lib/totp.js';
-import { buildLanguageSwitcher, describeError, initI18n, onLanguageChange, t } from '../lib/i18n.js';
+import { openCenteredWindow } from '../lib/windows.js';
+import { buildLanguageSwitcher, initI18n, onLanguageChange, t } from '../lib/i18n.js';
+import { createUnlockView } from '../unlock/unlock-view.js';
+import { createSettingsView } from '../settings/settings-view.js';
 import * as vault from '../lib/vault.js';
 
 const RING_RADIUS = 12;
@@ -16,12 +19,13 @@ const ui = {
         locked: $('#screenLocked'),
         vault: $('#screenVault'),
     },
-    lockedAlert: $('#lockedAlert'),
-    unlockForm: $('#unlockForm'),
-    masterPassword: $('#masterPassword'),
-    unlockBtn: $('#unlockBtn'),
-    biometricBtn: $('#biometricBtn'),
     search: $('#search'),
+    settingsTitle: $('#settingsTitle'),
+    settingsBtn: $('#settingsBtn'),
+    settingsPanel: $('#settingsPanel'),
+    lockBtn: $('#lockBtn'),
+    addBtn: $('#addBtn'),
+    sortBtn: $('#sortBtn'),
     list: $('#list'),
     emptyState: $('#emptyState'),
 };
@@ -30,6 +34,10 @@ let settings = { ...vault.DEFAULT_SETTINGS };
 let accounts = [];
 let sorting = false;
 let tickTimer = null;
+let settingsOpen = false;
+/** Dựng một lần rồi dùng lại, để mở đi mở lại cài đặt không mất trạng thái đang gõ dở. */
+let settingsView = null;
+let unlockView = null;
 /** id account => { account, codeEl, ringValue, ringLabel } */
 const rendered = new Map();
 
@@ -37,6 +45,7 @@ const rendered = new Map();
 
 function showScreen(name) {
     for (const [key, node] of Object.entries(ui.screens)) show(node, key === name);
+    document.body.dataset.screen = name;
 }
 
 function openPage(path) {
@@ -44,78 +53,113 @@ function openPage(path) {
     window.close();
 }
 
-/**
- * WebAuthn phải chạy ở cửa sổ riêng: hộp thoại sinh trắc của hệ điều hành cướp focus
- * làm popup đóng lại và huỷ ceremony giữa chừng.
- */
-function openUnlockWindow(query = '') {
-    chrome.windows.create({
-        url: chrome.runtime.getURL(`unlock/unlock.html${query}`),
-        type: 'popup',
-        width: 420,
-        height: 520,
-    });
-    window.close();
-}
-
 // ------------------------------------------------------------- mở khoá
 
-async function refreshLockedScreen() {
-    const status = await vault.getLockoutStatus();
-    if (status.lockedOut) {
-        ui.lockedAlert.textContent = t('error.tooManyAttempts', {
-            seconds: Math.ceil(status.remainingMs / 1000),
-        });
-        show(ui.lockedAlert, true);
-        ui.unlockBtn.disabled = true;
-        setTimeout(refreshLockedScreen, 1000);
-    } else {
-        show(ui.lockedAlert, false);
-        ui.unlockBtn.disabled = false;
-    }
+/**
+ * Màn khoá dùng chung khung với cửa sổ unlock, nên bấm vân tay không còn cảnh giao diện
+ * nhảy sang một khung khác kích thước. Riêng ceremony WebAuthn vẫn phải chạy ở cửa sổ riêng:
+ * hộp thoại sinh trắc của hệ điều hành cướp focus làm popup đóng và huỷ ceremony giữa chừng.
+ */
+function mountUnlockView() {
+    if (unlockView) return unlockView;
 
-    show(ui.biometricBtn, await vault.hasBiometric());
+    unlockView = createUnlockView({
+        onUnlocked: () => enterVault(),
+        onBiometricRequest: () => {
+            openCenteredWindow('unlock/unlock.html?biometric=1', { width: 396, height: 560 });
+            window.close();
+        },
+    });
+
+    ui.screens.locked.append(unlockView.root);
+    return unlockView;
 }
 
-ui.unlockForm.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    const password = ui.masterPassword.value;
-    if (!password) return;
+async function showLocked() {
+    stopTicking();
+    rendered.clear();
+    closeSettings();
+    showScreen('locked');
+    await mountUnlockView().start();
+}
 
-    ui.unlockBtn.disabled = true;
-    ui.unlockBtn.textContent = t('popup.locked.unlocking');
+// ------------------------------------------------------------- cài đặt
 
-    try {
-        await vault.unlockWithPassword(password);
-        ui.masterPassword.value = '';
-        await enterVault();
-    } catch (error) {
-        ui.lockedAlert.textContent = describeError(error);
-        show(ui.lockedAlert, true);
-        ui.masterPassword.select();
-        await refreshLockedScreen();
-    } finally {
-        ui.unlockBtn.textContent = t('popup.locked.unlock');
+function setSettingsIcon() {
+    clear(ui.settingsBtn);
+    ui.settingsBtn.append(icon(settingsOpen ? ICONS.back : ICONS.gear, 18));
+
+    const label = t(settingsOpen ? 'popup.action.back' : 'popup.action.settings');
+    ui.settingsBtn.title = label;
+    ui.settingsBtn.setAttribute('aria-label', label);
+}
+
+function paintSettingsMode() {
+    document.body.dataset.view = settingsOpen ? 'settings' : 'list';
+
+    show(ui.search, !settingsOpen);
+    show(ui.addBtn, !settingsOpen);
+    show(ui.sortBtn, !settingsOpen);
+    show(ui.settingsTitle, settingsOpen);
+    show(ui.settingsPanel, settingsOpen);
+    show(ui.list, !settingsOpen);
+    show(ui.emptyState, !settingsOpen && accounts.length === 0);
+    setSettingsIcon();
+}
+
+async function openSettings() {
+    if (!settingsView) {
+        settingsView = createSettingsView({
+            compact: true,
+            onSettingsChanged: async () => {
+                settings = await vault.getSettings();
+                await paintLockButton();
+                renderList();
+            },
+            onVaultDestroyed: () => setTimeout(() => window.location.reload(), 700),
+        });
+        ui.settingsPanel.append(settingsView.root);
     }
+
+    settingsOpen = true;
+    paintSettingsMode();
+    ui.settingsPanel.scrollTop = 0;
+    await settingsView.refresh();
+}
+
+function closeSettings() {
+    if (!settingsOpen) return;
+    settingsOpen = false;
+    paintSettingsMode();
+}
+
+/** Không còn lớp master password thì nút khoá không có tác dụng gì, ẩn hẳn cho khỏi gây hiểu nhầm. */
+async function paintLockButton() {
+    show(ui.lockBtn, (await vault.getProtection()) === vault.Protection.PASSWORD);
+}
+
+$('#goSetup').addEventListener('click', () => {
+    openCenteredWindow('unlock/unlock.html?setup=1', { width: 396, height: 700 });
+    window.close();
 });
-
-ui.biometricBtn.addEventListener('click', () => openUnlockWindow('?biometric=1'));
-
-$('#goSetup').addEventListener('click', () => openUnlockWindow('?setup=1'));
 
 // -------------------------------------------------------------- vault
 
-$('#lockBtn').addEventListener('click', async () => {
+ui.lockBtn.addEventListener('click', async () => {
     await vault.lock();
     chrome.runtime.sendMessage({ type: MSG.LOCK_NOW }).catch(() => {});
-    window.close();
+    await showLocked();
 });
 
-$('#settingsBtn').addEventListener('click', () => openPage('options/options.html'));
-$('#addBtn').addEventListener('click', () => openPage('import/import.html'));
+ui.settingsBtn.addEventListener('click', () => {
+    if (settingsOpen) closeSettings();
+    else openSettings();
+});
+
+ui.addBtn.addEventListener('click', () => openPage('import/import.html'));
 $('#emptyAddBtn').addEventListener('click', () => openPage('import/import.html'));
 
-$('#sortBtn').addEventListener('click', () => {
+ui.sortBtn.addEventListener('click', () => {
     sorting = !sorting;
     ui.list.dataset.sorting = String(sorting);
 
@@ -154,6 +198,11 @@ function icon(paths, size = 16) {
 
 const ICONS = {
     copy: ['M9 9h10v10H9z', 'M5 15V5h10'],
+    back: ['M19 12H5', 'M12 19l-7-7 7-7'],
+    gear: [
+        'M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0',
+        'M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z',
+    ],
     trash: ['M4 7h16', 'M10 11v6M14 11v6', 'M6 7l1 13h10l1-13', 'M9 7V4h6v3'],
     up: ['M12 19V5', 'M5 12l7-7 7 7'],
     down: ['M12 5v14', 'M19 12l-7 7-7-7'],
@@ -328,7 +377,7 @@ function renderList() {
     rendered.clear();
     clear(ui.list);
 
-    show(ui.emptyState, accounts.length === 0);
+    show(ui.emptyState, !settingsOpen && accounts.length === 0);
 
     if (accounts.length > 0 && visible.length === 0) {
         ui.list.append(el('p', { class: 'empty__text', text: t('popup.noMatch') }));
@@ -380,31 +429,40 @@ function startTicking() {
     tickTimer = setInterval(tick, 1000);
 }
 
+function stopTicking() {
+    if (tickTimer) clearInterval(tickTimer);
+    tickTimer = null;
+}
+
 // -------------------------------------------------------------- khởi động
 
 async function enterVault() {
     settings = await vault.getSettings();
     accounts = await vault.listAccounts();
     showScreen('vault');
+    await paintLockButton();
+    paintSettingsMode();
     renderList();
     startTicking();
     await vault.touchActivity();
-    ui.search.focus();
+    if (!settingsOpen) ui.search.focus();
 }
 
 async function boot() {
     await initI18n();
 
+    // Màn khoá tự mang nút cờ của nó (dựng trong unlock-view.js).
     $('#setupLang').append(buildLanguageSwitcher({ compact: true }));
-    $('#lockedLang').append(buildLanguageSwitcher({ compact: true }));
     $('#vaultLang').append(buildLanguageSwitcher({ compact: true }));
 
     // Đổi ngôn ngữ phải vẽ lại danh sách vì nhãn nút và tên mặc định dựng bằng JS.
     onLanguageChange(async () => {
         settings = await vault.getSettings();
+        setSettingsIcon();
         if (!ui.screens.vault.hidden) renderList();
-        if (!ui.screens.locked.hidden) await refreshLockedScreen();
     });
+
+    setSettingsIcon();
 
     const state = await vault.getState();
 
@@ -414,9 +472,7 @@ async function boot() {
     }
 
     if (state === vault.VaultState.LOCKED) {
-        showScreen('locked');
-        await refreshLockedScreen();
-        ui.masterPassword.focus();
+        await showLocked();
         return;
     }
 
@@ -424,17 +480,17 @@ async function boot() {
 }
 
 // Vault bị auto-lock trong lúc popup đang mở thì phải phản ứng ngay.
-chrome.storage.session.onChanged.addListener((changes) => {
-    if ('dek' in changes && !changes.dek.newValue) {
-        if (tickTimer) clearInterval(tickTimer);
-        rendered.clear();
-        showScreen('locked');
-        refreshLockedScreen();
-    }
+chrome.storage.session.onChanged.addListener(async (changes) => {
+    if (!('dek' in changes) || changes.dek.newValue) return;
+    // Vault không còn lớp mật khẩu thì DEK biến mất chỉ là do dọn dẹp, nó tự mở lại ngay.
+    if ((await vault.getProtection()) !== vault.Protection.PASSWORD) return;
+    await showLocked();
 });
 
 window.addEventListener('unload', () => {
-    if (tickTimer) clearInterval(tickTimer);
+    stopTicking();
+    unlockView?.destroy();
+    settingsView?.destroy();
 });
 
 boot();

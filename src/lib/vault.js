@@ -55,8 +55,36 @@ export const DEFAULT_SETTINGS = {
     sortMode: 'manual',
 };
 
-/** Chống dò mật khẩu: chờ tăng dần, chặn cứng từ lần thứ 5. */
-const BACKOFF_STEPS_MS = [0, 0, 1_000, 3_000, 10_000, 30_000, 60_000, 300_000];
+/**
+ * Cách vault được bảo vệ.
+ *
+ * PASSWORD: mặc định, DEK bọc bằng KEK dẫn xuất từ master password (và bản bọc vân tay song song).
+ * NONE:     user tự tắt lớp mật khẩu. DEK bọc bằng một khoá ngẫu nhiên nằm ngay trong
+ *           chrome.storage.local, tức là ai đọc được profile Chrome thì mở được vault.
+ *           Đây là lựa chọn tiện lợi có đánh đổi, UI phải nói thẳng điều đó.
+ */
+export const Protection = {
+    PASSWORD: 'password',
+    NONE: 'none',
+};
+
+/**
+ * Chống dò mật khẩu.
+ *
+ * 5 lần sai đầu không phạt gì (gõ nhầm là chuyện thường). Từ lần thứ 6 phải chờ, thời gian chờ
+ * gấp đôi sau mỗi lần: 15s, 30s, 60s, 2 phút, 4 phút... và dừng lại ở mức trần để một người
+ * quên mật khẩu thật không bị khoá máy hàng ngày trời.
+ */
+export const FREE_ATTEMPTS = 5;
+const FIRST_BACKOFF_MS = 15_000;
+const MAX_BACKOFF_MS = 30 * 60_000;
+
+/** Hàm thuần để test được: số lần sai tích luỹ => số mili giây phải chờ. */
+export function backoffDelayFor(failedAttempts) {
+    const over = Math.floor(Number(failedAttempts) || 0) - FREE_ATTEMPTS;
+    if (over <= 0) return 0;
+    return Math.min(FIRST_BACKOFF_MS * 2 ** (over - 1), MAX_BACKOFF_MS);
+}
 
 /** Vault khoá giữa chừng là chuyện bình thường, UI cần phân biệt nó với lỗi thật. */
 export class VaultLockedError extends AppError {
@@ -89,6 +117,11 @@ export async function isInitialized() {
     return (await readVaultRecord()) !== null;
 }
 
+export async function getProtection() {
+    const record = await readVaultRecord();
+    return record?.protection === Protection.NONE ? Protection.NONE : Protection.PASSWORD;
+}
+
 export async function hasBiometric() {
     const record = await readVaultRecord();
     return Boolean(record?.biometric);
@@ -109,10 +142,39 @@ export async function getBiometricDescriptor() {
 
 // ------------------------------------------------------------- khoá phiên
 
+async function readDeviceKeyBytes() {
+    const stored = await localGet(LOCAL_KEYS.DEVICE_KEY);
+    const raw = stored[LOCAL_KEYS.DEVICE_KEY];
+    return raw ? fromBase64(raw) : null;
+}
+
+/**
+ * Mở khoá không cần user làm gì, chỉ chạy khi user đã chủ động tắt lớp master password.
+ * Trả về null ở mọi trường hợp khác, kể cả khi bản ghi thiếu openWrap.
+ */
+async function openWithDeviceKey() {
+    const record = await readVaultRecord();
+    if (record?.protection !== Protection.NONE || !record.openWrap) return null;
+
+    const deviceKeyBytes = await readDeviceKeyBytes();
+    if (!deviceKeyBytes) return null;
+
+    try {
+        const key = await importDek(deviceKeyBytes);
+        const dekBytes = await aesGcmDecrypt(key, record.openWrap, aadFor('dek-wrap-open', record.schema));
+        await storeSessionDek(dekBytes);
+        return dekBytes;
+    } catch {
+        return null;
+    } finally {
+        wipe(deviceKeyBytes);
+    }
+}
+
 async function readSessionDek() {
     const stored = await sessionGet([SESSION_KEYS.DEK, SESSION_KEYS.LOCK_AT]);
     const raw = stored[SESSION_KEYS.DEK];
-    if (!raw) return null;
+    if (!raw) return openWithDeviceKey();
 
     const lockAt = stored[SESSION_KEYS.LOCK_AT];
     if (lockAt && Date.now() > lockAt) {
@@ -123,12 +185,16 @@ async function readSessionDek() {
 }
 
 async function storeSessionDek(dekBytes) {
+    // Không còn lớp mật khẩu thì auto-lock vô nghĩa: khoá xong lại tự mở ngay.
+    const open = (await getProtection()) === Protection.NONE;
     const settings = await getSettings();
+    const minutes = open ? 0 : settings.autoLockMinutes;
+
     await sessionSet({
         [SESSION_KEYS.DEK]: toBase64(dekBytes),
-        [SESSION_KEYS.LOCK_AT]: computeLockAt(settings.autoLockMinutes),
+        [SESSION_KEYS.LOCK_AT]: computeLockAt(minutes),
     });
-    await scheduleAutoLock(settings.autoLockMinutes);
+    await scheduleAutoLock(minutes);
 }
 
 function computeLockAt(autoLockMinutes) {
@@ -150,12 +216,15 @@ async function scheduleAutoLock(autoLockMinutes) {
 export async function touchActivity() {
     const stored = await sessionGet([SESSION_KEYS.DEK]);
     if (!stored[SESSION_KEYS.DEK]) return;
+    if ((await getProtection()) === Protection.NONE) return;
     const settings = await getSettings();
     await sessionSet({ [SESSION_KEYS.LOCK_AT]: computeLockAt(settings.autoLockMinutes) });
     await scheduleAutoLock(settings.autoLockMinutes);
 }
 
 export async function lock() {
+    // Tắt lớp mật khẩu rồi thì không có gì để khoá lại: mở khoá sẽ tự chạy ngay lần đọc kế tiếp.
+    if ((await getProtection()) === Protection.NONE) return;
     await sessionRemove([SESSION_KEYS.DEK, SESSION_KEYS.LOCK_AT]);
     if (globalThis.chrome?.alarms) await chrome.alarms.clear(ALARMS.AUTO_LOCK);
 }
@@ -176,8 +245,10 @@ async function readSecurity() {
 export async function getLockoutStatus() {
     const security = await readSecurity();
     const remainingMs = Math.max(0, (security.lockoutUntil ?? 0) - Date.now());
+    const failedAttempts = security.failedAttempts ?? 0;
     return {
-        failedAttempts: security.failedAttempts ?? 0,
+        failedAttempts,
+        attemptsLeft: Math.max(0, FREE_ATTEMPTS - failedAttempts),
         lockedOut: remainingMs > 0,
         remainingMs,
     };
@@ -186,7 +257,7 @@ export async function getLockoutStatus() {
 async function recordFailure() {
     const security = await readSecurity();
     const failedAttempts = (security.failedAttempts ?? 0) + 1;
-    const delay = BACKOFF_STEPS_MS[Math.min(failedAttempts, BACKOFF_STEPS_MS.length - 1)];
+    const delay = backoffDelayFor(failedAttempts);
     await localSet({
         [LOCAL_KEYS.SECURITY]: { failedAttempts, lockoutUntil: Date.now() + delay },
     });
@@ -228,6 +299,7 @@ export async function initialize(password) {
 
     await writeVaultRecord({
         schema: SCHEMA_VERSION,
+        protection: Protection.PASSWORD,
         kdf: { name: 'PBKDF2', hash: 'SHA-256', iterations: KDF_ITERATIONS, salt: toBase64(salt) },
         passwordWrap,
         biometric: null,
@@ -248,6 +320,7 @@ export async function unlockWithPassword(password) {
 
     const record = await readVaultRecord();
     if (!record) fail('error.vaultNoAccounts');
+    if (record.protection === Protection.NONE || !record.passwordWrap) fail('error.protectionOff');
 
     const salt = fromBase64(record.kdf.salt);
     const kek = await deriveKeyFromPassword(password, salt, record.kdf.iterations);
@@ -356,10 +429,74 @@ export async function removeBiometric() {
     await writeVaultRecord(record);
 }
 
+/**
+ * Tắt lớp master password.
+ *
+ * DEK được bọc lại bằng một khoá ngẫu nhiên nằm trong chrome.storage.local, và mọi đường mở khoá
+ * cũ (mật khẩu, vân tay) bị gỡ bỏ. Bật lại là phải đặt mật khẩu mới từ đầu - cố ý, để không tồn tại
+ * một bản bọc bằng mật khẩu cũ nằm lay lắt trong bản ghi.
+ *
+ * Yêu cầu vault đang mở khoá, vì cần chính DEK để bọc lại.
+ */
+export async function disablePasswordProtection() {
+    const record = await readVaultRecord();
+    if (!record) fail('error.vaultNotInitialized');
+    if (record.protection === Protection.NONE) return;
+
+    const dekBytes = await readSessionDek();
+    if (!dekBytes) throw new VaultLockedError('error.vaultNeedUnlockForProtection');
+
+    const deviceKeyBytes = generateDekBytes();
+    const deviceKey = await importDek(deviceKeyBytes);
+
+    record.openWrap = await aesGcmEncrypt(deviceKey, dekBytes, aadFor('dek-wrap-open', record.schema));
+    record.protection = Protection.NONE;
+    record.passwordWrap = null;
+    record.biometric = null;
+
+    await localSet({ [LOCAL_KEYS.DEVICE_KEY]: toBase64(deviceKeyBytes) });
+    await writeVaultRecord(record);
+    await clearFailures();
+
+    // Hạn auto-lock cũ còn treo thì vault sẽ tự mở lại ngay sau đó, nhưng dọn cho sạch.
+    await sessionSet({ [SESSION_KEYS.LOCK_AT]: null });
+    if (globalThis.chrome?.alarms) await chrome.alarms.clear(ALARMS.AUTO_LOCK);
+
+    wipe(deviceKeyBytes);
+    wipe(dekBytes);
+}
+
+/** Bật lại lớp master password bằng một mật khẩu mới. Khoá thiết bị bị xoá khỏi đĩa. */
+export async function enablePasswordProtection(newPassword) {
+    const record = await readVaultRecord();
+    if (!record) fail('error.vaultNotInitialized');
+    if (record.protection !== Protection.NONE) fail('error.protectionAlreadyOn');
+
+    const strength = assessPassword(newPassword);
+    if (!strength.ok) fail(strength.issues[0].code, strength.issues[0].params);
+
+    const dekBytes = await readSessionDek();
+    if (!dekBytes) throw new VaultLockedError();
+
+    const salt = randomBytes(SALT_BYTES);
+    const kek = await deriveKeyFromPassword(newPassword, salt, KDF_ITERATIONS);
+
+    record.kdf = { name: 'PBKDF2', hash: 'SHA-256', iterations: KDF_ITERATIONS, salt: toBase64(salt) };
+    record.passwordWrap = await aesGcmEncrypt(kek, dekBytes, aadFor('dek-wrap', record.schema));
+    record.protection = Protection.PASSWORD;
+    record.openWrap = null;
+
+    await writeVaultRecord(record);
+    await localRemove([LOCAL_KEYS.DEVICE_KEY]);
+    await clearFailures();
+    await storeSessionDek(dekBytes); // hẹn lại auto-lock theo cài đặt
+    wipe(dekBytes);
+}
+
 /** Xoá sạch mọi thứ. Không thể phục hồi. */
 export async function destroyVault() {
     await lock();
-    await localRemove([LOCAL_KEYS.VAULT, LOCAL_KEYS.SECURITY]);
+    await localRemove([LOCAL_KEYS.VAULT, LOCAL_KEYS.SECURITY, LOCAL_KEYS.DEVICE_KEY]);
 }
 
 // ------------------------------------------------------- đọc/ghi account

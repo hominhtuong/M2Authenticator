@@ -14,16 +14,12 @@ export const en = {
         'Create a master password to get started. All of your 2FA codes are encrypted with a key derived from it.',
     'popup.setup.action': 'Set up now',
 
-    'popup.locked.title': 'Locked',
-    'popup.locked.passwordPlaceholder': 'Master password',
-    'popup.locked.unlock': 'Unlock',
-    'popup.locked.unlocking': 'Unlocking...',
-    'popup.locked.biometric': 'Unlock with fingerprint',
 
     'popup.search': 'Search accounts...',
     'popup.action.add': 'Add account',
     'popup.action.sort': 'Reorder',
     'popup.action.settings': 'Settings',
+    'popup.action.back': 'Back to codes',
     'popup.action.lock': 'Lock now',
 
     'popup.empty.title': 'No accounts yet',
@@ -75,8 +71,14 @@ export const en = {
     'unlock.action': 'Unlock',
     'unlock.working': 'Unlocking...',
     'unlock.biometric': 'Unlock with fingerprint',
-    'unlock.biometricWaiting': 'Waiting for verification...',
     'unlock.footnote': 'The vault re-locks itself after the idle period you set in Settings.',
+
+    'unlock.scan.title': 'Waiting for your fingerprint',
+    'unlock.scan.hint': 'Touch the sensor to open the vault. This view waits until you finish or cancel.',
+    'unlock.scan.usePassword': 'Use master password instead',
+    'unlock.lockout': 'Too many wrong attempts. Try again in {time}.',
+    'unlock.wait.seconds': '{seconds}s',
+    'unlock.wait.minutes': '{minutes}m {seconds}s',
 
     'password.strength': 'Strength: {label}',
     'password.strength.0': 'Very weak',
@@ -165,6 +167,29 @@ export const en = {
     'options.language.title': 'Language',
     'options.language.lead': 'Applies to the whole extension and takes effect immediately.',
 
+    'options.protection.title': 'Master password',
+    'options.protection.lead': 
+        'The master password is what turns your saved secrets into unreadable data on disk. You can turn it off for convenience, but then anything able to read this Chrome profile can read your codes.',
+    'options.protection.on': 'On. The vault stays encrypted until you type your master password.',
+    'options.protection.off': 'Off. The vault opens by itself, with no password and no lock.',
+    'options.protection.disable': 'Turn off master password',
+    'options.protection.disableTitle': 'Turn off the master password?',
+    'options.protection.disableMessage': 
+        'Your codes will open with no password, and the key that decrypts them sits next to the data in this Chrome profile. Auto-lock, fingerprint unlock and your current password are removed. Turning it back on means setting a new password from scratch.',
+    'options.protection.disableAction': 'Turn it off',
+    'options.protection.disabled': 'Master password turned off.',
+    'options.protection.needUnlock': 'Unlock the vault first to change this.',
+    'options.protection.enable': 'Turn master password back on',
+    'options.protection.enableLead': 'Pick a new password. The old one was removed when you turned this off.',
+    'options.protection.newPassword': 'New master password',
+    'options.protection.confirm': 'Repeat new master password',
+    'options.protection.submit': 'Turn on and rewrap the key',
+    'options.protection.working': 'Deriving key...',
+    'options.protection.enabled': 'Master password is on again.',
+    'options.protection.mismatch': 'The two passwords do not match.',
+    'options.protection.hiddenNote': 
+        'Auto-lock, fingerprint unlock and change password are hidden because there is no master password to lock anything with.',
+
     'options.lock.title': 'Auto-lock',
     'options.lock.lead':
         'The vault always locks when you close Chrome. The setting below is how long it waits while idle before locking sooner.',
@@ -176,6 +201,9 @@ export const en = {
     'options.lock.60': '1 hour',
     'options.lock.0': 'Only when Chrome closes',
     'options.lock.saved': 'Auto-lock setting saved.',
+
+    'options.display.title': 'Codes and clipboard',
+    'options.display.lead': 'Applies whether or not the vault has a master password.',
 
     'options.clipboard.label': 'Clear the clipboard after copying a code',
     'options.clipboard.hint':
@@ -298,6 +326,10 @@ export const en = {
     'error.wrongPassword': 'Wrong master password. {attempts} failed attempts so far.',
     'error.wrongCurrentPassword': 'The current master password is not correct.',
     'error.tooManyAttempts': 'Too many wrong attempts. Try again in {seconds} seconds.',
+
+    'error.protectionOff': 'This vault has no master password. Open it straight from the extension icon.',
+    'error.protectionAlreadyOn': 'The master password is already on.',
+    'error.vaultNeedUnlockForProtection': 'Unlock the vault before changing the master password setting.',
 
     'error.biometricNotEnrolled': 'Fingerprint unlock has not been set up.',
     'error.biometricBadRecord': 'The fingerprint enrolment data is invalid.',

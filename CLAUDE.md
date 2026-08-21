@@ -28,10 +28,12 @@ src/                  Extension thật (load unpacked trỏ vào đây)
   lib/locales/        Bảng dịch en.js và vi.js
   _locales/           Tên + mô tả cho Chrome Web Store
   background/         Service worker: auto-lock, dọn clipboard
-  popup/              UI chính (mở khoá + danh sách mã)
-  unlock/             Trang mở khoá dạng cửa sổ riêng - bắt buộc cho WebAuthn
+  popup/              UI chính (danh sách mã + màn khoá + panel cài đặt)
+  unlock/             unlock-view.js: khung mở khoá dùng chung cho popup và cửa sổ riêng
+                      unlock.html: cửa sổ riêng, bắt buộc cho ceremony WebAuthn
+  settings/           settings-view.js: màn cài đặt dùng chung cho popup và options
   import/             Màn review khi nhập hàng loạt
-  options/            Cài đặt + đổi mật khẩu + đăng ký vân tay
+  options/            Vỏ full-size của màn cài đặt (nơi đăng ký vân tay chạy được)
 scripts/build.mjs     Đóng gói zip để nộp store
 store/                Nội dung listing Chrome Web Store + ảnh chụp màn hình
 tools/screenshots/    Harness giả lập chrome.* để chụp ảnh, KHÔNG đóng gói vào extension
@@ -49,6 +51,11 @@ DEK được bọc song song bởi nhiều cách mở khoá: một bản bọc b
 WebAuthn PRF (vân tay). Vì vậy đổi mật khẩu chỉ cần bọc lại DEK, không phải mã hoá lại toàn bộ vault, và
 đăng ký/gỡ vân tay không ảnh hưởng đường password.
 
+Có thêm chế độ `protection: 'none'` khi user tự tắt lớp master password: DEK được bọc bằng một khoá ngẫu nhiên
+nằm ngay trong `chrome.storage.local`, còn bản bọc bằng password và bằng vân tay bị xoá. Đây là tiện lợi, không
+phải bảo vệ - UI phải nói thẳng điều đó, và bật lại là đặt mật khẩu mới từ đầu. Bản ghi thiếu trường `protection`
+được đọc là `'password'` nên vault cũ không cần migrate.
+
 Khi mở khoá, DEK dạng raw nằm trong `chrome.storage.session` (bộ nhớ, không ghi đĩa, tự xoá khi đóng Chrome).
 Đây là đánh đổi có chủ ý để service worker của MV3 bị kill mà user không phải nhập lại mật khẩu liên tục.
 
@@ -61,6 +68,8 @@ Khi mở khoá, DEK dạng raw nằm trong `chrome.storage.session` (bộ nhớ,
   đó vẫn đứng yên. Đổi nó là mọi vault đã tồn tại không giải mã được nữa.
 - Không log secret, DEK, password, hay payload đã giải mã. Kể cả `console.debug` khi đang dev.
 - Sửa `lib/totp.js`, `lib/base32.js`, `lib/protobuf.js`, `lib/migration.js` thì chạy `npm test` trước khi báo xong.
+- Màn mở khoá và màn cài đặt chỉ có MỘT bản dựng: sửa `unlock/unlock-view.js` hoặc `settings/settings-view.js`,
+  đừng viết lại markup riêng cho popup. Trước đây mỗi nơi một bản nên giao diện lệch nhau thấy rõ.
 - Không viết chữ hiển thị thẳng vào code. HTML dùng `data-i18n`, JS dùng `t()`, `lib/` ném `fail('error.x')`
   chứ không tự dịch. Thêm khoá phải thêm ở cả `locales/en.js` lẫn `locales/vi.js`.
 
