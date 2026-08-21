@@ -1,5 +1,7 @@
 # M2 Authenticator
 
+**Tiếng Việt** · [English](README.en.md)
+
 ![Logo M2 Authenticator](brand/logo.png)
 
 Extension Chrome sinh mã xác thực hai lớp (TOTP/HOTP) chạy **hoàn toàn offline**. Mục tiêu: thay được app
@@ -11,6 +13,8 @@ một ứng dụng giữ seed 2FA thì phải kiểm chứng được.
 
 Giao diện có **tiếng Anh và tiếng Việt**, đổi bằng nút cờ ngay trong extension, không cần tải lại.
 
+[![Chrome Web Store](https://img.shields.io/badge/Chrome%20Web%20Store-c%C3%A0i%20ngay-4285F4?logo=googlechrome&logoColor=white)](https://chromewebstore.google.com/detail/lkfhkcegjopcbkoafepfmmajlkbnglfh)
+![Version](https://img.shields.io/badge/version-1.1.0-informational)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 ![Manifest](https://img.shields.io/badge/manifest-v3-brightgreen)
 ![Chrome](https://img.shields.io/badge/chrome-116%2B-orange)
@@ -19,11 +23,28 @@ Giao diện có **tiếng Anh và tiếng Việt**, đổi bằng nút cờ ngay
 
 ---
 
+## Có gì mới trong 1.1.0
+
+Lịch sử đầy đủ ở [CHANGELOG.md](CHANGELOG.md).
+
+- **Cài đặt mở ngay trong popup.** Bấm bánh răng là popup giãn ra và hiện cài đặt tại chỗ, không nhảy sang tab
+  khác. Bánh răng đổi thành mũi tên quay lại; nút ổ khoá đóng cài đặt và khoá vault ngay trong popup.
+- **Một khung mở khoá duy nhất.** Popup và cửa sổ mở khoá nay dùng chung một bản dựng nên không còn cảnh giao
+  diện lệch chỗ khi bấm vân tay. Lúc quét vân tay, khung đó đổi trạng thái tại chỗ thay vì mở ra màn khác.
+- **Chống dò mật khẩu chặt hơn.** 5 lần sai đầu không phạt, từ lần thứ 6 phải chờ 15s rồi gấp đôi mỗi lần, trần
+  30 phút. Lúc bị phạt thì khoá cả ô mật khẩu lẫn nút vân tay và đếm ngược tại chỗ. Mở khoá thành công là reset.
+- **Tắt được master password.** Dành cho ai thấy nhập mật khẩu quá phiền. Đánh đổi rất rõ, đọc kỹ mục
+  [Tắt master password](#tắt-master-password-đọc-kỹ) trước khi bật.
+
+Vault đang có không cần làm gì khi cập nhật: định dạng lưu trữ giữ nguyên, không có bước migrate nào.
+
+---
+
 ## Cài đặt
 
 ### Cách 1: từ Chrome Web Store (khuyến nghị)
 
-> Link store: _đang chờ duyệt, sẽ cập nhật_
+[**chromewebstore.google.com/detail/lkfhkcegjopcbkoafepfmmajlkbnglfh**](https://chromewebstore.google.com/detail/lkfhkcegjopcbkoafepfmmajlkbnglfh)
 
 Bấm **Add to Chrome** là xong, extension tự cập nhật khi có bản mới.
 
@@ -41,7 +62,7 @@ Nếu tự build từ mã nguồn, `npm run build` tạo sẵn `dist/unpacked/` 
 ```bash
 git clone https://github.com/hominhtuong/M2Authenticator.git
 cd M2Authenticator
-npm test        # 49 test, không cần cài dependency nào
+npm test        # 53 test, không cần cài dependency nào
 npm run build   # tạo dist/m2-authenticator-<version>.zip
 ```
 
@@ -272,6 +293,7 @@ src/                    extension (thư mục để load unpacked / đem đi né
     qr.js               đọc QR bằng BarcodeDetector
     webauthn.js         đăng ký / xác thực PRF
     clipboard.js        copy kèm hẹn giờ xoá
+    windows.js          mở trang của extension thành cửa sổ canh giữa màn hình
     dom.js              helper dựng DOM (không có API nào nhận HTML string)
     messages.js         hằng số message
     errors.js           AppError mang mã lỗi thay vì câu chữ
@@ -299,6 +321,7 @@ CONTRIBUTING.md         ràng buộc và quy trình đóng góp
 SECURITY.md             mô hình đe doạ đầy đủ
 PRIVACY.md              chính sách quyền riêng tư
 RELEASING.md            quy trình phát hành (dành cho maintainer)
+CHANGELOG.md            thay đổi của từng bản phát hành
 ```
 
 ---
@@ -306,7 +329,7 @@ RELEASING.md            quy trình phát hành (dành cho maintainer)
 ## Phát triển
 
 ```bash
-npm test                  # 49 test, gồm vector chính thức RFC 6238 / RFC 4226 / RFC 4648
+npm test                  # 53 test, gồm vector chính thức RFC 6238 / RFC 4226 / RFC 4648
 npm run build             # kiểm tra rồi đóng gói dist/m2-authenticator-<version>.zip + dist/unpacked/
 npm run screenshots       # dựng harness để chụp lại ảnh cho store
 npm run release:github    # tag + tạo GitHub release, đính kèm zip
@@ -338,9 +361,9 @@ với chi tiết khai thác được.
 
 ## Trạng thái
 
-Đây là bản phát hành đầu tiên. Phần thuật toán (TOTP/HOTP, Base32, protobuf, AES-GCM, PBKDF2, HKDF) đã có
-49 test tự động phủ, gồm vector chính thức của RFC 6238, RFC 4226 và RFC 4648, cùng các test giữ cho hai
-bảng dịch không lệch nhau.
+Bản hiện tại là **1.1.0**, đã lên Chrome Web Store. Phần thuật toán (TOTP/HOTP, Base32, protobuf, AES-GCM,
+PBKDF2, HKDF) và chính sách chống dò mật khẩu có 53 test tự động phủ, gồm vector chính thức của RFC 6238,
+RFC 4226 và RFC 4648, cùng các test giữ cho hai bảng dịch không lệch nhau.
 
 Còn thiếu, và biết là thiếu:
 
